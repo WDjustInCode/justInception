@@ -4,7 +4,7 @@ const SITE_TYPES = {
   billboard: {
     label: "Billboard / one-page site",
     basePrice: 500,
-    basePages: 1,
+    basePages: 2,
     extraPagePrice: 150,   // extra NEW page beyond base
     updatePagePrice: 90,   // extra UPDATED page beyond base (rebuild only)
   },
@@ -74,11 +74,11 @@ const PLATFORM_ADJUSTMENTS = {
   },
   webflow: {
     label: "Webflow",
-    adjustment: 400,
+    adjustment: 250,
   },
   nextjs: {
     label: "Custom Next.js",
-    adjustment: 1500,
+    adjustment: 750,
   },
 };
 
@@ -267,10 +267,9 @@ export const DEFAULT_SITEMAPS = {
     label: "Billboard / One-pager",
     core: [
       "home",             // Hero, about, highlights, CTA, testimonials section, contact block
+      "thankYou",         // Thank you / Confirmation page (included at no extra charge)
     ],
-    recommended: [
-      "thankYou",
-    ],
+    recommended: [],
     optional: [
       "privacy",
     ],
@@ -282,7 +281,6 @@ export const DEFAULT_SITEMAPS = {
       "about",
       "services",         // Overview of what they offer (one page)
       "howItWorks",       // Step-by-step explanation (trust builder)
-      "contact",
     ],
     recommended: [
       "serviceDetails",   // Template page for individual services (SEO-friendly)
@@ -290,6 +288,7 @@ export const DEFAULT_SITEMAPS = {
       "resources",        // Guides, PDFs, downloads
     ],
     optional: [
+      "contact",
       "blog",
       "privacy",
       "terms",
@@ -301,7 +300,6 @@ export const DEFAULT_SITEMAPS = {
       "home",        // Hero, featured products, highlights
       "about",       // Brand story
       "products",    // Product listing with built-in categories/filters
-      "contact",     // Store info, support, map
       "legal",       // Privacy, terms hub
     ],
     recommended: [
@@ -310,6 +308,7 @@ export const DEFAULT_SITEMAPS = {
       "locations",      // Only if multiple storefronts
     ],
     optional: [
+      "contact",     // Store info, support, map
       "blog",
       "lookbook",
       "giftCards",
@@ -325,7 +324,6 @@ export const DEFAULT_SITEMAPS = {
       "home",        // Retail hero, featured items, shipping tease
       "about",
       "products",    // Listing with categories inside
-      "contact",
       "legal",
     ],
     recommended: [
@@ -335,6 +333,7 @@ export const DEFAULT_SITEMAPS = {
       "locations",
     ],
     optional: [
+      "contact",
       "blog",
       "lookbook",
       "giftCards",
@@ -350,7 +349,6 @@ export const DEFAULT_SITEMAPS = {
       "home",
       "about",
       "resources",        // Article hub / guides / tools
-      "contact",
     ],
     recommended: [
       "blog",
@@ -358,6 +356,7 @@ export const DEFAULT_SITEMAPS = {
       "faq",
     ],
     optional: [
+      "contact",
       "events",
       "instructors",
       "privacy",
@@ -371,7 +370,6 @@ export const DEFAULT_SITEMAPS = {
       "about",
       "portfolio",        // Gallery / work grid
       "caseStudies",      // Depth stories (SEO content)
-      "contact",
     ],
     recommended: [
       "services",         // Creative offerings: branding, UX/UI, etc.
@@ -379,6 +377,7 @@ export const DEFAULT_SITEMAPS = {
       "faq",
     ],
     optional: [
+      "contact",
       "blog",
       "press",            // Awards, features
       "privacy",
@@ -390,7 +389,6 @@ export const DEFAULT_SITEMAPS = {
     core: [
       "home",
       "about",
-      "contact",
     ],
     recommended: [
       "schedule",
@@ -399,6 +397,7 @@ export const DEFAULT_SITEMAPS = {
       "faq",
     ],
     optional: [
+      "contact",
       "sponsors",
       "venue",
       "pastEvents",
@@ -411,7 +410,6 @@ export const DEFAULT_SITEMAPS = {
     core: [
       "home",             // Marketing page
       "about",
-      "contact",
       "resources",        // Docs / help / reference materials
       "legal",            // Combined legal hub
     ],
@@ -422,6 +420,7 @@ export const DEFAULT_SITEMAPS = {
       "changelog",        // Updates
     ],
     optional: [
+      "contact",
       "pricing",          // Only if relevant
       "login",            // May be handled by app shell
       "signup",
@@ -540,6 +539,7 @@ const LEAD_GEN_PLATFORM_ADJUSTMENTS = {
 
 const TIMELINE_MULTIPLIERS = {
   standard: { label: "Standard timeline", multiplier: 1.0 },
+  takeYourTime: { label: "Take your time (-25%)", multiplier: 0.75 },
   rush25:   { label: "Rush (+25%)",       multiplier: 1.25 },
   rush50:   { label: "Super rush (+50%)", multiplier: 1.5  },
 };
@@ -627,8 +627,8 @@ export type QuoteInput = QuoteFormInput & {
 // Platform determination logic
 // Rules:
 // - Next.js if: webapp OR calculator lead gen OR complex system
-// - Builder if: budget-conscious AND simple site
-// - Webflow: default/standard
+// - Builder if: budget-conscious (all site types, no platform charge)
+// - Webflow: default/standard OR when custom animations selected
 // - Webflow + Next.js: custom animations + calculator (special case - we'll use Next.js for the calculator part)
 export function determinePlatform(input: QuoteFormInput): keyof typeof PLATFORM_ADJUSTMENTS {
   // If no site type, default to webflow (won't be used but needed for type safety)
@@ -652,14 +652,15 @@ export function determinePlatform(input: QuoteFormInput): keyof typeof PLATFORM_
     return "nextjs";
   }
 
-  // Budget-conscious + simple site = Builder (unless they want custom animations)
-  if (input.isBudgetConscious && !input.wantsCustomAnimations && (input.siteType === "billboard" || input.siteType === "serviceBusiness" || input.siteType === "events")) {
-    return "builder";
-  }
-
-  // Custom animations prefer Webflow (better animation capabilities)
+  // Custom animations require Webflow (better animation capabilities)
+  // This takes priority over budget-conscious
   if (input.wantsCustomAnimations) {
     return "webflow";
+  }
+
+  // Budget-conscious = Builder (all site types, no platform charge)
+  if (input.isBudgetConscious) {
+    return "builder";
   }
 
   // Default: Webflow (standard platform)
@@ -875,8 +876,13 @@ function calculateQuoteInternal(input: QuoteInput): QuoteResult {
           input.leadGenType === "calculator" && input.wantsCustomAnimations && input.platform === "webflow";
         const calculatorPlatform = isHybridCase ? "nextjs" : input.platform;
         
-        const lgAdj =
-          LEAD_GEN_PLATFORM_ADJUSTMENTS[calculatorPlatform] ?? 0;
+        // Simple lead gens on Webflow don't get platform adjustment - just $50
+        const isSimpleLeadGenOnWebflow = 
+          input.leadGenType === "simple" && input.platform === "webflow";
+        
+        const lgAdj = isSimpleLeadGenOnWebflow
+          ? 0
+          : (LEAD_GEN_PLATFORM_ADJUSTMENTS[calculatorPlatform] ?? 0);
         const leadGenCost = Math.max(0, leadGen.baseBuild + lgAdj);
         if (leadGenCost > 0) {
           total += leadGenCost;
@@ -899,6 +905,49 @@ function calculateQuoteInternal(input: QuoteInput): QuoteResult {
           amount: integ.price,
         });
       }
+
+      // ---- 6.25. CUSTOM ANIMATIONS CHARGE ----
+      // Add $250 per page animation charge when custom animations are requested (Webflow site)
+      // Only charge for core pages (with exception: billboard = 1 page)
+      if (input.wantsCustomAnimations && input.platform === "webflow" && totalPages > 0) {
+        let animationPageCount = 0;
+        
+        if (input.siteType === "billboard") {
+          // One-pager exception: always charge for 1 page
+          animationPageCount = 1;
+        } else if (input.siteType) {
+          // Count only core pages that are selected
+          const sitemap = DEFAULT_SITEMAPS[input.siteType];
+          if (sitemap && sitemap.core) {
+            const corePages = sitemap.core;
+            let selectedPages: (keyof typeof PAGE_SECTIONS)[] = [];
+            
+            if (!input.isRebuild) {
+              selectedPages = input.selectedPages || [];
+            } else {
+              // For rebuilds, count core pages from both updated and new pages
+              const updated = input.selectedPagesToUpdate || [];
+              const added = input.selectedPagesToAdd || [];
+              selectedPages = [...updated, ...added];
+            }
+            
+            // Count how many selected pages are in the core list
+            // Pages with counts (like serviceDetails) count as 1 if they're in core
+            animationPageCount = selectedPages.filter(page => 
+              corePages.includes(page as string)
+            ).length;
+          }
+        }
+        
+        if (animationPageCount > 0) {
+          const animationCost = animationPageCount * 250;
+          total += animationCost;
+          breakdown.push({
+            label: `Custom animations and unique interactive design (${animationPageCount} × $250)`,
+            amount: animationCost,
+          });
+        }
+      }
     }
 
   // ---- 6.5. BRAND KIT & LOGO DESIGN ----
@@ -910,18 +959,25 @@ function calculateQuoteInternal(input: QuoteInput): QuoteResult {
     });
   }
 
-  // ---- 7. TIMELINE MULTIPLIER (rush pricing) ----
+  // ---- 7. TIMELINE MULTIPLIER (rush pricing / discounts) ----
   const timeline = TIMELINE_MULTIPLIERS[input.timeline];
   const preTimelineTotal = total;
   const multiplier = timeline.multiplier;
   if (multiplier !== 1) {
     const finalTotal = Math.round(preTimelineTotal * multiplier);
-    const surcharge = finalTotal - preTimelineTotal;
+    const adjustment = finalTotal - preTimelineTotal;
     total = finalTotal;
-    breakdown.push({
-      label: `Timeline surcharge (${timeline.label})`,
-      amount: surcharge,
-    });
+    if (multiplier < 1) {
+      breakdown.push({
+        label: `Timeline discount (${timeline.label})`,
+        amount: adjustment, // This will be negative
+      });
+    } else {
+      breakdown.push({
+        label: `Timeline surcharge (${timeline.label})`,
+        amount: adjustment,
+      });
+    }
   }
 
   // Prepare meta data

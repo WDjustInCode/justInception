@@ -251,7 +251,7 @@ export default function IntakeFormPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold mb-3 tracking-tight" style={{ color: '#ffdd4f' }}>
+            <h1 className="text-3xl font-bold tracking-tight" style={{ color: '#ffdd4f' }}>
               Thanks for sharing your project
             </h1>
             <p className="leading-relaxed mb-6" style={{ color: '#ffdd4f', opacity: 0.8 }}>
@@ -262,7 +262,7 @@ export default function IntakeFormPage() {
           {/* Pricing Estimate */}
           {quoteResult && (
             <div className="text-sm rounded-2xl p-6" style={{ backgroundColor: 'rgba(255, 221, 79, 0.05)', borderColor: '#ffdd4f', borderWidth: '1px', padding: '12px' }}>
-                <div className="space-y-3">
+                <div className="space-y-2">
                     {quoteResult.breakdown.length === 0 && (
                         <div className="text-xs" style={{ color: '#ffdd4f', opacity: 0.7 }}>
                         No items selected.
@@ -327,7 +327,7 @@ export default function IntakeFormPage() {
         {step === 1 && (
           <section className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight mb-2" style={{ color: '#ffdd4f' }}>
+              <h2 className="text-2xl font-bold tracking-tight" style={{ color: '#ffdd4f' }}>
                 Contact & business details
               </h2>
               <p style={{ color: '#ffdd4f', opacity: 0.8 }}>
@@ -372,7 +372,7 @@ export default function IntakeFormPage() {
         {step === 2 && (
           <section className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight mb-2" style={{ color: '#ffdd4f' }}>
+              <h2 className="text-2xl font-bold tracking-tight" style={{ color: '#ffdd4f' }}>
                 Project type & scope
               </h2>
               <p style={{ color: '#ffdd4f', opacity: 0.8 }}>
@@ -380,23 +380,15 @@ export default function IntakeFormPage() {
               </p>
             </div>
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#ffdd4f' }}>
-                  <input
-                    type="checkbox"
-                    checked={data.wantsBrandKit}
-                    onChange={(e) => update("wantsBrandKit", e.target.checked)}
-                    style={{ marginRight: '8px' }}
-                  />
-                  Logo + Brand Kit Design
-                </label>
-                <p className="text-xs mt-1 ml-6" style={{ color: '#ffdd4f', opacity: 0.7 }}>
-                  You can choose this service independently or alongside a website project.
-                </p>
-              </div>
+              <Checkbox
+                checked={data.wantsBrandKit}
+                onChange={(checked) => update("wantsBrandKit", checked)}
+                label="Logo + Brand Kit Design"
+                description="You can choose this service independently or alongside a website project."
+              />
 
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#ffdd4f' }}>
+                <label className="block text-sm font-medium" style={{ color: '#ffdd4f' }}>
                   Site type {!data.wantsBrandKit && <span className="text-red-500">*</span>}
                 </label>
                 <select
@@ -415,43 +407,36 @@ export default function IntakeFormPage() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#ffdd4f' }}>
-                  <input
-                    type="checkbox"
-                    checked={data.isRebuild}
-                    onChange={(e) => {
-                      const isRebuild = e.target.checked;
-                      setData((prev) => {
-                        const defaultPages = isRebuild 
-                          ? [] 
-                          : (prev.siteType 
-                              ? getDefaultPagesForSiteType(prev.siteType as keyof typeof SITE_TYPES) 
-                              : ["home"] as (keyof typeof PAGE_SECTIONS)[]);
-                        const newData: FormData = {
-                          ...prev,
-                          isRebuild,
-                          // If switching to rebuild, clear selectedPages
-                          // If switching from rebuild, set default pages based on site type
-                          selectedPages: defaultPages,
-                          selectedPagesToUpdate: isRebuild ? [] : [],
-                          selectedPagesToAdd: isRebuild ? [] : [],
-                        };
-                        if (typeof window !== 'undefined') {
-                          localStorage.setItem('intakeFormData', JSON.stringify(newData));
-                        }
-                        return newData;
-                      });
-                    }}
-                    style={{ marginRight: '8px' }}
-                  />
-                  This is a rebuild/redesign of an existing site
-                </label>
-              </div>
+              <Checkbox
+                checked={data.isRebuild}
+                onChange={(isRebuild) => {
+                  setData((prev) => {
+                    const defaultPages = isRebuild 
+                      ? [] 
+                      : (prev.siteType 
+                          ? getDefaultPagesForSiteType(prev.siteType as keyof typeof SITE_TYPES) 
+                          : ["home"] as (keyof typeof PAGE_SECTIONS)[]);
+                    const newData: FormData = {
+                      ...prev,
+                      isRebuild,
+                      // If switching to rebuild, clear selectedPages
+                      // If switching from rebuild, set default pages based on site type
+                      selectedPages: defaultPages,
+                      selectedPagesToUpdate: isRebuild ? [] : [],
+                      selectedPagesToAdd: isRebuild ? [] : [],
+                    };
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('intakeFormData', JSON.stringify(newData));
+                    }
+                    return newData;
+                  });
+                }}
+                label="This is a rebuild/redesign of an existing site"
+              />
 
               {!data.isRebuild && data.siteType ? (
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: '#ffdd4f' }}>
+                  <label className="block text-sm font-medium" style={{ color: '#ffdd4f' }}>
                     Pages & sections needed <span className="text-red-500">*</span>
                   </label>
                   <p className="text-xs mb-3" style={{ color: '#ffdd4f', opacity: 0.7 }}>
@@ -472,7 +457,7 @@ export default function IntakeFormPage() {
                         {/* Core Pages */}
                         {core.length > 0 && (
                           <div className="mb-4">
-                            <h4 className="text-sm font-semibold mb-2" style={{ color: '#ffdd4f' }}>Core Pages</h4>
+                            <h4 className="text-sm font-semibold mb-2" style={{ color: '#ffdd4f' }}>Core Pages (included)</h4>
                             <div className="flex flex-wrap gap-2">
                               {core.map((pageKey) => {
                                 const page = PAGE_SECTIONS[pageKey as keyof typeof PAGE_SECTIONS];
@@ -504,7 +489,7 @@ export default function IntakeFormPage() {
                         {/* Recommended Pages */}
                         {recommended.length > 0 && (
                           <div className="mb-4">
-                            <h4 className="text-sm font-semibold mb-2" style={{ color: '#ffdd4f' }}>Recommended (pre-selected)</h4>
+                            <h4 className="text-sm font-semibold mb-2" style={{ color: '#ffdd4f' }}>Recommended (~$150/page)</h4>
                             <div className="flex flex-wrap gap-2">
                               {recommended.map((pageKey) => {
                                 const page = PAGE_SECTIONS[pageKey as keyof typeof PAGE_SECTIONS];
@@ -536,7 +521,12 @@ export default function IntakeFormPage() {
                         {/* Optional Pages */}
                         {optional.length > 0 && (
                           <div className="mb-4">
-                            <h4 className="text-sm font-semibold mb-2" style={{ color: '#ffdd4f' }}>Optional (add if needed)</h4>
+                            <h4 className="text-sm font-semibold mb-0" style={{ color: '#ffdd4f' }}>Optional (~$150/page)</h4>
+                            <p className="text-xs mb-3" style={{ color: '#ffdd4f', opacity: 0.7 }}>
+                              {optional.includes('contact' as any) 
+                                ? "A contact section will be implemented on your site unless you select the separate Contact page option below."
+                                : "Additional pages you can add to your site."}
+                            </p>
                             <div className="flex flex-wrap gap-2">
                               {optional.map((pageKey) => {
                                 const page = PAGE_SECTIONS[pageKey as keyof typeof PAGE_SECTIONS];
@@ -765,7 +755,7 @@ export default function IntakeFormPage() {
         {step === 3 && (
           <section className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight mb-2" style={{ color: '#ffdd4f' }}>
+              <h2 className="text-2xl font-bold tracking-tight" style={{ color: '#ffdd4f' }}>
                 Content & lead generation
               </h2>
               <p style={{ color: '#ffdd4f', opacity: 0.8 }}>
@@ -774,7 +764,7 @@ export default function IntakeFormPage() {
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#ffdd4f' }}>
+                <label className="block text-sm font-medium" style={{ color: '#ffdd4f' }}>
                   Content handling <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -793,7 +783,7 @@ export default function IntakeFormPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#ffdd4f' }}>
+                <label className="block text-sm font-medium" style={{ color: '#ffdd4f' }}>
                   Lead generator type
                 </label>
                 <select
@@ -810,29 +800,45 @@ export default function IntakeFormPage() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#ffdd4f' }}>
-                  <input
-                    type="checkbox"
-                    checked={data.wantsCustomAnimations}
-                    onChange={(e) => update("wantsCustomAnimations", e.target.checked)}
-                    style={{ marginRight: '8px' }}
-                  />
-                  I want custom animations and unique interactive design
-                </label>
-              </div>
+              <Checkbox
+                checked={data.wantsCustomAnimations}
+                onChange={(checked) => {
+                  setData((prev) => {
+                    const newData = {
+                      ...prev,
+                      wantsCustomAnimations: checked,
+                      // Uncheck budget conscious if custom animations is selected
+                      isBudgetConscious: checked ? false : prev.isBudgetConscious,
+                    };
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('intakeFormData', JSON.stringify(newData));
+                    }
+                    return newData;
+                  });
+                }}
+                label="I want custom animations and unique interactive design"
+                description="Webflow site with custom animations (~$250/page)"
+              />
 
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#ffdd4f' }}>
-                  <input
-                    type="checkbox"
-                    checked={data.isBudgetConscious}
-                    onChange={(e) => update("isBudgetConscious", e.target.checked)}
-                    style={{ marginRight: '8px' }}
-                  />
-                  I'm working with a tight budget and prefer simpler solutions
-                </label>
-              </div>
+              <Checkbox
+                checked={data.isBudgetConscious}
+                onChange={(checked) => {
+                  setData((prev) => {
+                    const newData = {
+                      ...prev,
+                      isBudgetConscious: checked,
+                      // Uncheck custom animations if budget conscious is selected
+                      wantsCustomAnimations: checked ? false : prev.wantsCustomAnimations,
+                    };
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('intakeFormData', JSON.stringify(newData));
+                    }
+                    return newData;
+                  });
+                }}
+                label="I'm working with a tight budget and prefer simpler solutions"
+                description="GoDaddy, Wix, or similar builder platform (no platform charge)"
+              />
             </div>
           </section>
         )}
@@ -841,7 +847,7 @@ export default function IntakeFormPage() {
         {step === 4 && (
           <section className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight mb-2" style={{ color: '#ffdd4f' }}>
+              <h2 className="text-2xl font-bold tracking-tight" style={{ color: '#ffdd4f' }}>
                 Integrations & timeline
               </h2>
               <p style={{ color: '#ffdd4f', opacity: 0.8 }}>
@@ -850,7 +856,7 @@ export default function IntakeFormPage() {
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#ffdd4f' }}>
+                <label className="block text-sm font-medium" style={{ color: '#ffdd4f' }}>
                   Integrations needed
                 </label>
                 <p className="text-xs mb-3" style={{ color: '#ffdd4f', opacity: 0.7 }}>
@@ -882,7 +888,7 @@ export default function IntakeFormPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#ffdd4f' }}>
+                <label className="block text-sm font-medium" style={{ color: '#ffdd4f' }}>
                   Timeline <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -920,7 +926,7 @@ export default function IntakeFormPage() {
         {step === 5 && (
           <section className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight mb-2" style={{ color: '#ffdd4f' }}>
+              <h2 className="text-2xl font-bold tracking-tight" style={{ color: '#ffdd4f' }}>
                 Review your details
               </h2>
               <p style={{ color: '#ffdd4f', opacity: 0.8 }}>
@@ -1047,6 +1053,71 @@ export default function IntakeFormPage() {
 }
 
 // ---- UI helpers ----
+
+type CheckboxProps = {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label: string;
+  description?: string;
+  id?: string;
+};
+
+function Checkbox({ checked, onChange, label, description, id }: CheckboxProps) {
+  const checkboxId = id || `checkbox-${Math.random().toString(36).substr(2, 9)}`;
+  
+  return (
+    <div>
+      <label 
+        htmlFor={checkboxId}
+        className="flex items-start gap-3 cursor-pointer group"
+        style={{ color: '#ffdd4f' }}
+      >
+        <div className="relative flex-shrink-0 mt-0.5">
+          <input
+            type="checkbox"
+            id={checkboxId}
+            checked={checked}
+            onChange={(e) => onChange(e.target.checked)}
+            className="sr-only"
+          />
+          <div
+            className="relative w-5 h-5 rounded-md border-1 transition-all duration-200 flex items-center justify-center group-hover:scale-110"
+            style={{
+              borderColor: checked ? '#a29bfe' : '#ffdd4f',
+              backgroundColor: checked ? '#a29bfe' : 'transparent',
+              boxShadow: checked ? '0 0 0 3px rgba(162, 155, 254, 0.1)' : 'none',
+            }}
+          >
+            {checked && (
+              <svg
+                className="w-3.5 h-3.5 text-white"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.5"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                style={{
+                  animation: 'checkmark 0.2s ease-out',
+                }}
+              >
+                <path d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </div>
+        </div>
+        <div className="flex-1">
+          <span className="text-sm font-medium block group-hover:opacity-90 transition-opacity">{label}</span>
+          {description && (
+            <p className="text-xs mt-1 transition-opacity group-hover:opacity-80" style={{ opacity: 0.7 }}>
+              {description}
+            </p>
+          )}
+        </div>
+      </label>
+    </div>
+  );
+}
 
 type FieldProps = {
   label: string;
