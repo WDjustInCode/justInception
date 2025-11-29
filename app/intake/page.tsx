@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { SITE_TYPES, CONTENT_OPTIONS, LEAD_GEN, INTEGRATIONS, FEATURE_COMPLEXITY, TIMELINE_MULTIPLIERS, PAGE_SECTIONS, DEFAULT_SITEMAPS, calculatePageCountFromSelections, type QuoteFormInput, type QuoteResult } from "@/lib/quote";
+import { SITE_TYPES, CONTENT_OPTIONS, LEAD_GEN, INTEGRATIONS, FEATURE_COMPLEXITY, TIMELINE_MULTIPLIERS, PAGE_SECTIONS, DEFAULT_SITEMAPS, calculatePageCountFromSelections, BRAND_KIT, type QuoteFormInput, type QuoteResult } from "@/lib/quote";
 
 type FormData = {
   // Contact info
@@ -29,6 +29,7 @@ type FormData = {
   integrations: (keyof typeof INTEGRATIONS)[];
   wantsCustomAnimations: boolean;
   isBudgetConscious: boolean;
+  wantsBrandKit: boolean;
   // Additional
   launchDate: string;
   extraNotes: string;
@@ -69,6 +70,7 @@ const initialData: FormData = {
   integrations: [],
   wantsCustomAnimations: false,
   isBudgetConscious: false,
+  wantsBrandKit: false,
   launchDate: "",
   extraNotes: "",
 };
@@ -188,7 +190,7 @@ export default function IntakeFormPage() {
     try {
       // Prepare quote data
       const quoteData: QuoteFormInput = {
-        siteType: data.siteType as keyof typeof SITE_TYPES,
+        siteType: data.siteType ? (data.siteType as keyof typeof SITE_TYPES) : undefined,
         timeline: data.timeline,
         isRebuild: data.isRebuild,
         selectedPages: data.isRebuild ? undefined : data.selectedPages,
@@ -206,6 +208,7 @@ export default function IntakeFormPage() {
         integrations: data.integrations,
         wantsCustomAnimations: data.wantsCustomAnimations,
         isBudgetConscious: data.isBudgetConscious,
+        wantsBrandKit: data.wantsBrandKit,
       };
 
       const res = await fetch("/api/intake", {
@@ -258,26 +261,35 @@ export default function IntakeFormPage() {
 
           {/* Pricing Estimate */}
           {quoteResult && (
-            <div className="space-y-3 text-sm rounded-2xl p-6" style={{ backgroundColor: 'rgba(255, 221, 79, 0.05)', borderColor: '#ffdd4f', borderWidth: '1px', padding: '12px' }}>
-              <div className="flex items-baseline justify-between">
-                <span style={{ color: '#ffdd4f' }}>Estimated Price</span>
-                <span className="font-medium text-right" style={{ color: '#ffdd4f' }}>${quoteResult.total.toLocaleString()}</span>
-              </div>
-              
-              {quoteResult.breakdown.map((item, idx) => (
-                <div key={idx} className="flex justify-between gap-6 py-2">
-                  <span className="text-sm" style={{ color: '#ffdd4f' }}>{item.label}</span>
-                  <span className="font-medium text-right" style={{ color: '#ffdd4f' }}>${item.amount.toLocaleString()}</span>
+            <div className="text-sm rounded-2xl p-6" style={{ backgroundColor: 'rgba(255, 221, 79, 0.05)', borderColor: '#ffdd4f', borderWidth: '1px', padding: '12px' }}>
+                <div className="space-y-3">
+                    {quoteResult.breakdown.length === 0 && (
+                        <div className="text-xs" style={{ color: '#ffdd4f', opacity: 0.7 }}>
+                        No items selected.
+                        </div>
+                    )}
+                    
+                    {quoteResult.breakdown.map((item, idx) => (
+                        <div key={idx} className="flex justify-between gap-6 py-2">
+                            <span className="text-sm" style={{ color: '#ffdd4f' }}>{item.label}</span>
+                            <span className="font-medium text-right" style={{ color: '#ffdd4f' }}>${item.amount.toLocaleString()}</span>
+                        </div>
+                    ))}
                 </div>
-              ))}
+                <div style={{ borderTop: '1px solid rgba(255, 221, 79, 0.2)', paddingTop: '2px', marginTop: '2px', marginBottom: '12px' }}>
+                    <div className="flex items-baseline justify-between">
+                        <span style={{ color: '#ffdd4f' }}>Estimated Price</span>
+                        <span className="font-medium text-right" style={{ color: '#ffdd4f' }}>${quoteResult.total.toLocaleString()}</span>
+                    </div>
+                </div>
 
-              <div className="pt-2" style={{ borderTop: '1px solid rgba(255, 221, 79, 0.2)' }}>
-                <div className="text-xs leading-relaxed" style={{ color: '#ffdd4f', opacity: 0.8 }}>
-                  <p>
-                    <strong>Please note:</strong> This is an estimated price based on the information provided. The quote calculator isn't perfect and doesn't take into account any details mentioned in your extra notes. The final price could be more or less depending on specific requirements, but this estimate should give you a good ballpark figure.
-                  </p>
+                <div className="pt-2" style={{ borderTop: '1px solid rgba(255, 221, 79, 0.2)' }}>
+                    <div className="text-xs leading-relaxed" style={{ color: '#ffdd4f', opacity: 0.8 }}>
+                    <p>
+                        <strong>Please note:</strong> This is an estimated price based on the information provided. The quote calculator isn't perfect and doesn't take into account any details mentioned in your extra notes. The final price could be more or less depending on specific requirements, but this estimate should give you a good ballpark figure.
+                    </p>
+                    </div>
                 </div>
-              </div>
             </div>
           )}
         </div>
@@ -370,16 +382,31 @@ export default function IntakeFormPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: '#ffdd4f' }}>
-                  Site type <span className="text-red-500">*</span>
+                  <input
+                    type="checkbox"
+                    checked={data.wantsBrandKit}
+                    onChange={(e) => update("wantsBrandKit", e.target.checked)}
+                    style={{ marginRight: '8px' }}
+                  />
+                  Logo + Brand Kit Design
+                </label>
+                <p className="text-xs mt-1 ml-6" style={{ color: '#ffdd4f', opacity: 0.7 }}>
+                  You can choose this service independently or alongside a website project.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#ffdd4f' }}>
+                  Site type {!data.wantsBrandKit && <span className="text-red-500">*</span>}
                 </label>
                 <select
                   value={data.siteType}
                   onChange={(e) => update("siteType", e.target.value as keyof typeof SITE_TYPES)}
-                  required
+                  required={!data.wantsBrandKit}
                   className="w-full rounded-xl text-sm focus:outline-none transition-all bg-transparent"
                   style={{ borderColor: '#ffdd4f', borderWidth: '1px', color: '#ffdd4f', padding: '12px 16px' }}
                 >
-                  <option value="" style={{ backgroundColor: '#03040a', color: '#ffdd4f' }}>Select...</option>
+                  <option value="" style={{ backgroundColor: '#03040a', color: '#ffdd4f' }}>{data.wantsBrandKit ? "No website needed" : "Select..."}</option>
                   {Object.entries(SITE_TYPES).map(([key, value]) => (
                     <option key={key} value={key} style={{ backgroundColor: '#03040a', color: '#ffdd4f' }}>
                       {value.label}
@@ -579,10 +606,12 @@ export default function IntakeFormPage() {
                     />
                   )}
                 </div>
-              ) : !data.isRebuild ? (
+              ) : !data.isRebuild && !data.siteType ? (
                 <div>
                   <p className="text-sm" style={{ color: '#ffdd4f', opacity: 0.7 }}>
-                    Please select a site type first to see recommended pages.
+                    {data.wantsBrandKit 
+                      ? "You've selected Logo + Brand Kit Design. You can continue to the next step or also select a site type above if you need a website as well."
+                      : "Please select a site type first to see recommended pages."}
                   </p>
                 </div>
               ) : (
@@ -934,7 +963,16 @@ export default function IntakeFormPage() {
               {data.integrations.length > 0 && (
                 <SummaryRow label="Integrations" value={data.integrations.map(k => INTEGRATIONS[k]?.label).join(", ")} />
               )}
+              <SummaryRow label="Brand Kit" value={data.wantsBrandKit ? "Yes" : "No"} />
               <SummaryRow label="Launch date" value={data.launchDate || "—"} />
+              {data.extraNotes ? (
+                <div className="flex flex-col gap-0 py-2">
+                  <span className="text-sm" style={{ color: '#ffdd4f' }}>Extra notes:</span>
+                  <span className="font-medium text-sm whitespace-pre-wrap" style={{ color: '#ffdd4f', opacity: 0.9 }}>{data.extraNotes}</span>
+                </div>
+              ) : (
+                <SummaryRow label="Extra notes" value="—" />
+              )}
             </div>
           </section>
         )}

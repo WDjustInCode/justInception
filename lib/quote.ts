@@ -16,8 +16,8 @@ const SITE_TYPES = {
     updatePagePrice: 100,
   },
   retail: {
-    label: "Retail / Shop",
-    basePrice: 2000,
+    label: "Retail / Shop (non-sales)",
+    basePrice: 900,
     basePages: 5,
     extraPagePrice: 150,
     updatePagePrice: 100,
@@ -25,8 +25,8 @@ const SITE_TYPES = {
     extraProductPrice: 20,
   },
   retailShipping: {
-    label: "Retail + Shipping",
-    basePrice: 2250,
+    label: "Retail / Shop (sales & shipping)",
+    basePrice: 1500,
     basePages: 5,
     extraPagePrice: 150,
     updatePagePrice: 100,
@@ -35,14 +35,14 @@ const SITE_TYPES = {
   },
   educational: {
     label: "Educational business",
-    basePrice: 1250,
+    basePrice: 1500,
     basePages: 6,
     extraPagePrice: 150,
     updatePagePrice: 100,
   },
   creative: {
     label: "Creative business",
-    basePrice: 1250,
+    basePrice: 900,
     basePages: 6,
     extraPagePrice: 150,
     updatePagePrice: 100,
@@ -486,6 +486,13 @@ const INTEGRATIONS = {
   },
 };
 
+// 5.5. BRAND KIT & LOGO DESIGN
+
+const BRAND_KIT = {
+  label: "Logo + Brand Kit Design",
+  price: 1000,
+};
+
 // 6. WEBAPP FEATURE COMPLEXITY ADD-ON
 
 const FEATURE_COMPLEXITY = {
@@ -580,7 +587,7 @@ export function calculatePageCountFromSelections(
 // Input shape for form (platform will be determined automatically)
 
 export type QuoteFormInput = {
-  siteType: keyof typeof SITE_TYPES;
+  siteType?: keyof typeof SITE_TYPES;
   timeline: keyof typeof TIMELINE_MULTIPLIERS;
   isRebuild: boolean;
   // Pages - now using selections instead of direct counts
@@ -608,6 +615,8 @@ export type QuoteFormInput = {
   // Platform determination helpers
   wantsCustomAnimations?: boolean;  // for determining if Webflow needed
   isBudgetConscious?: boolean;      // for determining if Builder should be used
+  // Additional services
+  wantsBrandKit?: boolean;          // Logo + Brand Kit Design
 };
 
 // Internal input shape (with platform)
@@ -622,6 +631,11 @@ export type QuoteInput = QuoteFormInput & {
 // - Webflow: default/standard
 // - Webflow + Next.js: custom animations + calculator (special case - we'll use Next.js for the calculator part)
 export function determinePlatform(input: QuoteFormInput): keyof typeof PLATFORM_ADJUSTMENTS {
+  // If no site type, default to webflow (won't be used but needed for type safety)
+  if (!input.siteType) {
+    return "webflow";
+  }
+
   // Webapp always uses Next.js
   if (input.siteType === "webapp") {
     return "nextjs";
@@ -687,202 +701,217 @@ export function calculateQuote(input: QuoteInput | QuoteFormInput): QuoteResult 
 }
 
 function calculateQuoteInternal(input: QuoteInput): QuoteResult {
-  const site     = SITE_TYPES[input.siteType];
-  const platform = PLATFORM_ADJUSTMENTS[input.platform];
-  const timeline = TIMELINE_MULTIPLIERS[input.timeline];
-  const content  = CONTENT_OPTIONS[input.contentHandling];
   let total = 0;
   const breakdown: QuoteBreakdownItem[] = [];
 
-  // ---- 1. BASE SITE PRICE (site type + platform) ----
-  const baseSitePrice = site.basePrice + platform.adjustment;
-  total += baseSitePrice;
-  breakdown.push({
-    label: `${site.label} · ${platform.label}`,
-    amount: baseSitePrice,
-  });
-
-  // ---- 2. PAGES: NEW BUILD vs REBUILD ----
+  // Initialize variables for meta data
   let totalPages = 0;
-  let updatedPages = 0;
-  let newPages = 0;
-  
-  if (!input.isRebuild) {
-    // New build: calculate from selected pages if provided, otherwise use direct count
-    if (input.selectedPages && input.selectedPages.length > 0) {
-      totalPages = calculatePageCountFromSelections(
-        input.selectedPages,
-        input.serviceDetailsCount,
-        input.caseStudyCount,
-        input.courseCount,
-        input.productDetailsCount
-      );
-    } else {
-      totalPages = input.totalPages ?? 0;
-    }
-    newPages   = totalPages;
-    updatedPages = 0;
-  } else {
-    // Rebuild: calculate from selected pages if provided
-    if (input.selectedPagesToUpdate && input.selectedPagesToUpdate.length > 0) {
-      updatedPages = calculatePageCountFromSelections(
-        input.selectedPagesToUpdate,
-        input.serviceDetailsCount,
-        input.caseStudyCount,
-        input.courseCount,
-        input.productDetailsCount
-      );
-    } else {
-      updatedPages = input.updatedPages ?? 0;
-    }
-    
-    if (input.selectedPagesToAdd && input.selectedPagesToAdd.length > 0) {
-      newPages = calculatePageCountFromSelections(
-        input.selectedPagesToAdd,
-        input.serviceDetailsCount,
-        input.caseStudyCount,
-        input.courseCount,
-        input.productDetailsCount
-      );
-    } else {
-      newPages = input.newPages ?? 0;
-    }
-    
-    totalPages = updatedPages + newPages;
-  }
-
-  const basePagesIncluded = site.basePages ?? 0;
-  let freeUpdated = 0;
+  let basePagesIncluded = 0;
   let freeNew = 0;
-  let extraUpdated = 0;
+  let freeUpdated = 0;
   let extraNew = 0;
-  if (input.isRebuild) {
-    let remainingBase = basePagesIncluded;
-    // base pages cover UPDATED pages first
-    freeUpdated = Math.min(updatedPages, remainingBase);
-    remainingBase -= freeUpdated;
-    // remaining base pages cover NEW pages
-    freeNew = Math.min(newPages, remainingBase);
-    remainingBase -= freeNew;
-    extraUpdated = Math.max(updatedPages - freeUpdated, 0);
-    extraNew     = Math.max(newPages - freeNew, 0);
-  } else {
-    freeNew    = Math.min(newPages, basePagesIncluded);
-    extraNew   = Math.max(newPages - freeNew, 0);
-    freeUpdated  = 0;
-    extraUpdated = 0;
-  }
+  let extraUpdated = 0;
 
-  // Charge for additional NEW pages beyond base
-  if (extraNew > 0 && site.extraPagePrice) {
-    const cost = extraNew * site.extraPagePrice;
-    total += cost;
+  // ---- 1. BASE SITE PRICE (site type + platform) ----
+  // Only calculate if site type is provided
+  if (input.siteType) {
+    const site     = SITE_TYPES[input.siteType];
+    const platform = PLATFORM_ADJUSTMENTS[input.platform];
+    const content  = CONTENT_OPTIONS[input.contentHandling];
+    const baseSitePrice = site.basePrice + platform.adjustment;
+    total += baseSitePrice;
     breakdown.push({
-      label: `Additional new pages (${extraNew} × $${site.extraPagePrice})`,
-      amount: cost,
+      label: `${site.label} · ${platform.label}`,
+      amount: baseSitePrice,
     });
-  }
 
-  // Charge for additional UPDATED pages beyond base
-  if (extraUpdated > 0 && site.updatePagePrice) {
-    const cost = extraUpdated * site.updatePagePrice;
-    total += cost;
-    breakdown.push({
-      label: `Updated pages beyond base (${extraUpdated} × $${site.updatePagePrice})`,
-      amount: cost,
-    });
-  }
-
-  // ---- 3. CONTENT COST (per total page count) ----
-  if (content.perPage > 0 && totalPages > 0) {
-    const contentCost = content.perPage * totalPages;
-    total += contentCost;
-    breakdown.push({
-      label: `Content: ${content.label} (${totalPages} × $${content.perPage})`,
-      amount: contentCost,
-    });
-  }
-
-  // ---- 4. TYPE-SPECIFIC EXTRAS ----
-  // Creative business: extra projects beyond base
-  if (input.siteType === "creative") {
-    const creativeSite = site as typeof SITE_TYPES.creative;
-    const count = input.projectCount ?? 0;
-    const baseProjects = creativeSite.baseProjectsIncluded ?? 0;
-    const extraProjects = Math.max(count - baseProjects, 0);
-    if (extraProjects > 0 && creativeSite.extraProjectPrice) {
-      const projectCost = extraProjects * creativeSite.extraProjectPrice;
-      total += projectCost;
-      breakdown.push({
-        label: `Extra portfolio projects (${extraProjects} × $${creativeSite.extraProjectPrice})`,
-        amount: projectCost,
-      });
-    }
-  }
-
-  // Retail businesses: extra products beyond base
-  if (input.siteType === "retail" || input.siteType === "retailShipping") {
-    const retailSite = site as typeof SITE_TYPES.retail | typeof SITE_TYPES.retailShipping;
-    const count = input.productCount ?? 0;
-    const baseProducts = retailSite.baseProductsIncluded ?? 0;
-    const extraProducts = Math.max(count - baseProducts, 0);
-    if (extraProducts > 0 && retailSite.extraProductPrice) {
-      const productCost = extraProducts * retailSite.extraProductPrice;
-      total += productCost;
-      breakdown.push({
-        label: `Extra products (${extraProducts} × $${retailSite.extraProductPrice})`,
-        amount: productCost,
-      });
-    }
-  }
-
-  // Web app: feature complexity add-on
-  if (input.siteType === "webapp") {
-    const fc = FEATURE_COMPLEXITY[input.featureComplexity ?? "medium"];
-    if (fc && fc.adjustment > 0) {
-      total += fc.adjustment;
-      breakdown.push({
-        label: `App feature complexity: ${fc.label}`,
-        amount: fc.adjustment,
-      });
-    }
-  }
-
-  // ---- 5. LEAD GENERATOR (baseBuild + platform adjustment) ----
-  const leadGen = LEAD_GEN[input.leadGenType];
-  if (leadGen && leadGen.baseBuild > 0) {
-    // Hybrid case: Calculator + Animations = Webflow site with Next.js calculator app
-    // Use Next.js pricing for the calculator even though main platform is Webflow
-    const isHybridCase = 
-      input.leadGenType === "calculator" && input.wantsCustomAnimations && input.platform === "webflow";
-    const calculatorPlatform = isHybridCase ? "nextjs" : input.platform;
+    // ---- 2. PAGES: NEW BUILD vs REBUILD ----
+    let updatedPages = 0;
+    let newPages = 0;
     
-    const lgAdj =
-      LEAD_GEN_PLATFORM_ADJUSTMENTS[calculatorPlatform] ?? 0;
-    const leadGenCost = Math.max(0, leadGen.baseBuild + lgAdj);
-    if (leadGenCost > 0) {
-      total += leadGenCost;
-      breakdown.push({
-        label: isHybridCase 
-          ? `Lead generator: ${leadGen.label} (Next.js app embedded in Webflow)`
-          : `Lead generator: ${leadGen.label}`,
-        amount: leadGenCost,
-      });
+    if (!input.isRebuild) {
+      // New build: calculate from selected pages if provided, otherwise use direct count
+      if (input.selectedPages && input.selectedPages.length > 0) {
+        totalPages = calculatePageCountFromSelections(
+          input.selectedPages,
+          input.serviceDetailsCount,
+          input.caseStudyCount,
+          input.courseCount,
+          input.productDetailsCount
+        );
+      } else {
+        totalPages = input.totalPages ?? 0;
+      }
+      newPages   = totalPages;
+      updatedPages = 0;
+    } else {
+      // Rebuild: calculate from selected pages if provided
+      if (input.selectedPagesToUpdate && input.selectedPagesToUpdate.length > 0) {
+        updatedPages = calculatePageCountFromSelections(
+          input.selectedPagesToUpdate,
+          input.serviceDetailsCount,
+          input.caseStudyCount,
+          input.courseCount,
+          input.productDetailsCount
+        );
+      } else {
+        updatedPages = input.updatedPages ?? 0;
+      }
+      
+      if (input.selectedPagesToAdd && input.selectedPagesToAdd.length > 0) {
+        newPages = calculatePageCountFromSelections(
+          input.selectedPagesToAdd,
+          input.serviceDetailsCount,
+          input.caseStudyCount,
+          input.courseCount,
+          input.productDetailsCount
+        );
+      } else {
+        newPages = input.newPages ?? 0;
+      }
+      
+      totalPages = updatedPages + newPages;
     }
-  }
 
-  // ---- 6. INTEGRATIONS (flat fees) ----
-  for (const key of input.integrations) {
-    const integ = INTEGRATIONS[key];
-    if (!integ) continue;
-    total += integ.price;
+    basePagesIncluded = site.basePages ?? 0;
+    if (input.isRebuild) {
+      let remainingBase = basePagesIncluded;
+      // base pages cover UPDATED pages first
+      freeUpdated = Math.min(updatedPages, remainingBase);
+      remainingBase -= freeUpdated;
+      // remaining base pages cover NEW pages
+      freeNew = Math.min(newPages, remainingBase);
+      remainingBase -= freeNew;
+      extraUpdated = Math.max(updatedPages - freeUpdated, 0);
+      extraNew     = Math.max(newPages - freeNew, 0);
+    } else {
+      freeNew    = Math.min(newPages, basePagesIncluded);
+      extraNew   = Math.max(newPages - freeNew, 0);
+      freeUpdated  = 0;
+      extraUpdated = 0;
+    }
+
+      // Charge for additional NEW pages beyond base
+      if (extraNew > 0 && site.extraPagePrice) {
+        const cost = extraNew * site.extraPagePrice;
+        total += cost;
+        breakdown.push({
+          label: `Additional new pages (${extraNew} × $${site.extraPagePrice})`,
+          amount: cost,
+        });
+      }
+
+      // Charge for additional UPDATED pages beyond base
+      if (extraUpdated > 0 && site.updatePagePrice) {
+        const cost = extraUpdated * site.updatePagePrice;
+        total += cost;
+        breakdown.push({
+          label: `Updated pages beyond base (${extraUpdated} × $${site.updatePagePrice})`,
+          amount: cost,
+        });
+      }
+
+      // ---- 3. CONTENT COST (per total page count) ----
+      if (content.perPage > 0 && totalPages > 0) {
+        const contentCost = content.perPage * totalPages;
+        total += contentCost;
+        breakdown.push({
+          label: `Content: ${content.label} (${totalPages} × $${content.perPage})`,
+          amount: contentCost,
+        });
+      }
+
+      // ---- 4. TYPE-SPECIFIC EXTRAS ----
+      // Creative business: extra projects beyond base
+      if (input.siteType === "creative") {
+        const creativeSite = site as typeof SITE_TYPES.creative;
+        const count = input.projectCount ?? 0;
+        const baseProjects = creativeSite.baseProjectsIncluded ?? 0;
+        const extraProjects = Math.max(count - baseProjects, 0);
+        if (extraProjects > 0 && creativeSite.extraProjectPrice) {
+          const projectCost = extraProjects * creativeSite.extraProjectPrice;
+          total += projectCost;
+          breakdown.push({
+            label: `Extra portfolio projects (${extraProjects} × $${creativeSite.extraProjectPrice})`,
+            amount: projectCost,
+          });
+        }
+      }
+
+      // Retail businesses: extra products beyond base
+      if (input.siteType === "retail" || input.siteType === "retailShipping") {
+        const retailSite = site as typeof SITE_TYPES.retail | typeof SITE_TYPES.retailShipping;
+        const count = input.productCount ?? 0;
+        const baseProducts = retailSite.baseProductsIncluded ?? 0;
+        const extraProducts = Math.max(count - baseProducts, 0);
+        if (extraProducts > 0 && retailSite.extraProductPrice) {
+          const productCost = extraProducts * retailSite.extraProductPrice;
+          total += productCost;
+          breakdown.push({
+            label: `Extra products (${extraProducts} × $${retailSite.extraProductPrice})`,
+            amount: productCost,
+          });
+        }
+      }
+
+      // Web app: feature complexity add-on
+      if (input.siteType === "webapp") {
+        const fc = FEATURE_COMPLEXITY[input.featureComplexity ?? "medium"];
+        if (fc && fc.adjustment > 0) {
+          total += fc.adjustment;
+          breakdown.push({
+            label: `App feature complexity: ${fc.label}`,
+            amount: fc.adjustment,
+          });
+        }
+      }
+
+      // ---- 5. LEAD GENERATOR (baseBuild + platform adjustment) ----
+      const leadGen = LEAD_GEN[input.leadGenType];
+      if (leadGen && leadGen.baseBuild > 0) {
+        // Hybrid case: Calculator + Animations = Webflow site with Next.js calculator app
+        // Use Next.js pricing for the calculator even though main platform is Webflow
+        const isHybridCase = 
+          input.leadGenType === "calculator" && input.wantsCustomAnimations && input.platform === "webflow";
+        const calculatorPlatform = isHybridCase ? "nextjs" : input.platform;
+        
+        const lgAdj =
+          LEAD_GEN_PLATFORM_ADJUSTMENTS[calculatorPlatform] ?? 0;
+        const leadGenCost = Math.max(0, leadGen.baseBuild + lgAdj);
+        if (leadGenCost > 0) {
+          total += leadGenCost;
+          breakdown.push({
+            label: isHybridCase 
+              ? `Lead generator: ${leadGen.label} (Next.js app embedded in Webflow)`
+              : `Lead generator: ${leadGen.label}`,
+            amount: leadGenCost,
+          });
+        }
+      }
+
+      // ---- 6. INTEGRATIONS (flat fees) ----
+      for (const key of input.integrations) {
+        const integ = INTEGRATIONS[key];
+        if (!integ) continue;
+        total += integ.price;
+        breakdown.push({
+          label: integ.label,
+          amount: integ.price,
+        });
+      }
+    }
+
+  // ---- 6.5. BRAND KIT & LOGO DESIGN ----
+  if (input.wantsBrandKit) {
+    total += BRAND_KIT.price;
     breakdown.push({
-      label: integ.label,
-      amount: integ.price,
+      label: BRAND_KIT.label,
+      amount: BRAND_KIT.price,
     });
   }
 
   // ---- 7. TIMELINE MULTIPLIER (rush pricing) ----
+  const timeline = TIMELINE_MULTIPLIERS[input.timeline];
   const preTimelineTotal = total;
   const multiplier = timeline.multiplier;
   if (multiplier !== 1) {
@@ -895,6 +924,17 @@ function calculateQuoteInternal(input: QuoteInput): QuoteResult {
     });
   }
 
+  // Prepare meta data
+  let siteTypeLabel = "None";
+  let platformLabel = "N/A";
+
+  if (input.siteType) {
+    const site = SITE_TYPES[input.siteType];
+    const platform = PLATFORM_ADJUSTMENTS[input.platform];
+    siteTypeLabel = site.label;
+    platformLabel = platform.label;
+  }
+
   return {
     total,          // final total after timeline multiplier
     breakdown,      // array of line items
@@ -905,8 +945,8 @@ function calculateQuoteInternal(input: QuoteInput): QuoteResult {
       freeUpdated,
       extraNew,
       extraUpdated,
-      siteTypeLabel: site.label,
-      platformLabel: platform.label,
+      siteTypeLabel,
+      platformLabel,
       timelineLabel: timeline.label,
     },
   };
@@ -918,4 +958,4 @@ export function formatQuote(result: QuoteResult): string {
 }
 
 // Export constants for use in forms/UI
-export { SITE_TYPES, PLATFORM_ADJUSTMENTS, CONTENT_OPTIONS, INTEGRATIONS, FEATURE_COMPLEXITY, LEAD_GEN, TIMELINE_MULTIPLIERS, LEAD_GEN_PLATFORM_ADJUSTMENTS };
+export { SITE_TYPES, PLATFORM_ADJUSTMENTS, CONTENT_OPTIONS, INTEGRATIONS, FEATURE_COMPLEXITY, LEAD_GEN, TIMELINE_MULTIPLIERS, LEAD_GEN_PLATFORM_ADJUSTMENTS, BRAND_KIT };

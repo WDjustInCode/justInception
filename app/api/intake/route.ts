@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     // Calculate quote from submitted data
     // Platform will be determined automatically based on requirements
     const quoteInput: QuoteFormInput = {
-      siteType: body.siteType || "serviceBusiness",
+      siteType: body.siteType || undefined,
       timeline: body.timeline || "standard",
       isRebuild: body.isRebuild || false,
       selectedPages: body.selectedPages,
@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
       integrations: body.integrations || [],
       wantsCustomAnimations: body.wantsCustomAnimations || false,
       isBudgetConscious: body.isBudgetConscious || false,
+      wantsBrandKit: body.wantsBrandKit || false,
     };
 
     const quoteResult = calculateQuote(quoteInput);
@@ -101,6 +102,7 @@ export async function POST(req: NextRequest) {
       // Options
       body.wantsCustomAnimations ? "Yes" : "No",
       body.isBudgetConscious ? "Yes" : "No",
+      body.wantsBrandKit ? "Yes" : "No",
       // Notes
       body.extraNotes || "",
       // Quote Results
