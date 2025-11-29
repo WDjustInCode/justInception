@@ -486,7 +486,7 @@ const INTEGRATIONS = {
   },
 };
 
-// 5.5. BRAND KIT & LOGO DESIGNs
+// 5.5. BRAND KIT & LOGO DESIGN
 
 const BRAND_KIT = {
   label: "Logo + Brand Kit Design",
