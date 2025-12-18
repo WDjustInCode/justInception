@@ -99,10 +99,6 @@ export default function Contact() {
                 multiple
                 className="mt-2 block w-full text-sm text-neutral-300 file:mr-3 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-semibold file:text-neutral-950 hover:file:bg-neutral-200"
               />
-              <p className="mt-2 text-xs text-neutral-500">
-                Tip: if you want server-side file handling, wire this to S3/R2 or
-                similar. This sample route does not persist attachments.
-              </p>
             </div>
 
             <button
