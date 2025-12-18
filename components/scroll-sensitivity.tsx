@@ -32,7 +32,7 @@ export default function ScrollSensitivity() {
     window.addEventListener("wheel", handleWheel, { passive: false });
 
     return () => {
-      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("wheel", handleWheel, { passive: false } as AddEventListenerOptions);
     };
   }, []);
 

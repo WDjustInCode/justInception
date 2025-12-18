@@ -3,8 +3,6 @@ import { Resend } from "resend";
 
 export const runtime = "nodejs";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
@@ -36,10 +34,18 @@ export async function POST(req: Request) {
       console.log("[contact] Attempting to send email to justin@justinception.studio");
       console.log("[contact] API key present:", !!process.env.RESEND_API_KEY);
       
+      // Check if API key is configured
+      if (!process.env.RESEND_API_KEY) {
+        console.warn("RESEND_API_KEY is not set. Email will not be sent.");
+        return NextResponse.json({ ok: true }, { status: 200 });
+      }
+
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      
       const result = await resend.emails.send({
         from: "Justinception Contact Form <contact@transmit.justinception.studio>",
         to: "justin@justinception.studio",
-        replyTo: email,
+        reply_to: email,
         subject: `New Contact Form Submission from ${name}`,
         html: `
           <h2>New Contact Form Submission</h2>

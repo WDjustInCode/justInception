@@ -36,7 +36,7 @@ export default function Header() {
       }
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     
     return () => {
       if (headerTimerRef.current) {
