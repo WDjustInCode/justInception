@@ -991,7 +991,7 @@ export default function IntakeFormPage() {
           <div className="flex gap-3">
             {step === 1 ? (
               <a
-                href="https://www.justinception.studio"
+                href="/"
                 className="text-sm mt-5 rounded-xl font-medium transition-colors inline-block"
                 style={{ borderColor: '#ffdd4f', borderWidth: '1px', color: '#ffdd4f', backgroundColor: 'transparent', padding: '12px 16px', textDecoration: 'none' }}
               >

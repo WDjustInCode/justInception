@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-bg: #03040a;
+  --color-brand-yellow: #ffdd4f;
+  --color-brand-purple: #a29bfe;
+  --color-brand-blue: #2d4e89;
+}
+
+/* Custom CSS variables - not used by Tailwind, safe to keep */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #03040a;
+    --foreground: #ededed;
+  }
+}
+
+/* Minimal global styles - let Tailwind handle everything else */
+html {
+  max-width: 100vw;
+  overflow-x: hidden;
+  background-color: #03040a;
+}
+
+body {
+  /* Only keep essential properties that don't conflict with Tailwind */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #03040a;
+}
+
+/* Ensure box-sizing is set - Tailwind base should handle this, but being explicit */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+}
+
+@keyframes checkmark {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes logo-fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-logo-fade-up {
+  animation: logo-fade-up 1s ease-out 1s both;
+}
+

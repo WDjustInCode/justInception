@@ -1,32 +1,27 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import "./global.css";
+import Header from "@/components/site/header";
+import Footer from "@/components/site/footer";
+import ScrollSensitivity from "@/components/scroll-sensitivity";
 
 export const metadata: Metadata = {
-  title: "justInception | Quote Calculator",
-  description: "justInception is a web development and design company that specializes in creating custom websites for businesses and individuals. We offer a wide range of services, including website design, development, and SEO. We are based in the United States and are available to work with clients worldwide.",
+  title: "JustInception Studio",
+  description:
+    "Design, development, and AI-driven speed to help your brand lift off with confidence.",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+    <html lang="en" className="bg-brand-bg">
+      <body className="min-h-dvh bg-brand-bg text-neutral-50 antialiased">
+        <ScrollSensitivity />
+        <Header />
+        <main>{children}</main>
+        <Footer />
       </body>
     </html>
   );
 }
+
