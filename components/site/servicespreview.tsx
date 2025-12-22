@@ -4,18 +4,25 @@ import Link from "next/link";
 import Image from "next/image";
 import Section from "./section";
 
-const cards = [
+type Card = {
+  title: string;
+  description: string;
+  image?: string;
+  video?: string;
+};
+
+const cards: Card[] = [
   {
-    title: "Mission Essentials",
+    title: "Chart a Course",
     description:
       "Brand direction, design systems, and the build plan that makes shipping predictable.",
-    image: "/noun-checklist.svg",
+    video: "/grok-video-telescope.mp4",
   },
   {
     title: "Launch Sequence",
     description:
       "Design + development execution: pages, interactions, performance, deployment.",
-    video: "/grok-rocket-video.mp4",
+    video: "/grok-video-rocket-ship.mp4",
   },
   {
     title: "Ground Control",
@@ -41,11 +48,11 @@ export default function ServicesPreview() {
     }
   };
   return (
-    <Section eyebrow="Services" title="Prepare for Launch">
+    <Section eyebrow="how it works" title="Mission Protocol">
       <div className="flex items-end justify-between gap-6">
         <p className="max-w-prose text-sm leading-6 text-neutral-300">
-          A simple, repeatable framework: get the essentials right, launch
-          cleanly, then keep improving.
+          A simple, repeatable framework: prepare your mission, execute the launch,
+          then maintain course.
         </p>
         <Link
           href="/services"

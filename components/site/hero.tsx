@@ -110,7 +110,7 @@ export default function Hero() {
       </div>
       
       {/* Content */}
-      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-end gap-16 px-5 mt-[55vh] md:mt-0 pb-2 md:pb-0 md:-mb-32">
+      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-end gap-16 px-9 mt-[55vh] md:mt-0 pb-2 md:pb-0 md:-mb-32">
         
         {/* Existing content grid */}
         <div 

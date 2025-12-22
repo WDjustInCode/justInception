@@ -13,7 +13,7 @@ const items = [
     src: "/locoal-brand-card.png",
   },
   {
-    title: "Azul Pools Services",
+    title: "Azul Pool Services",
     href: "https://azulpoolservices.com",
     src: "/azul-brand-card.png",
   },
@@ -31,11 +31,11 @@ const items = [
 
 export default function Gallery() {
   return (
-    <Section eyebrow="Work" title="Recent Projects">
+    <Section eyebrow="Portfolio" title="Recent Missions">
       <div className="flex flex-wrap gap-4">
         {items.map((it) => {
           const card = (
-            <div className="min-w-[340px] rounded-2xl border border-brand-blue/30 bg-brand-blue/10 p-3 shadow-sm">
+            <div className="min-w-[290px] rounded-2xl border border-brand-blue/30 bg-brand-blue/10 p-3 shadow-sm">
               <div className="relative aspect-square overflow-hidden rounded-xl border border-brand-purple/20">
                 <Image
                   src={it.src}

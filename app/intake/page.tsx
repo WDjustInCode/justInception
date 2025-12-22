@@ -992,8 +992,16 @@ export default function IntakeFormPage() {
             {step === 1 ? (
               <a
                 href="/"
-                className="text-sm mt-5 rounded-xl font-medium transition-colors inline-block"
-                style={{ borderColor: '#ffdd4f', borderWidth: '1px', color: '#ffdd4f', backgroundColor: 'transparent', padding: '12px 16px', textDecoration: 'none' }}
+                className="inline-flex items-center justify-center rounded-full text-sm font-semibold transition-colors"
+                style={{ 
+                  border: '1px solid rgba(162, 155, 254, 0.5)',
+                  backgroundColor: 'rgba(162, 155, 254, 0.1)',
+                  color: '#ffdd4f',
+                  padding: '10px 20px',
+                  textDecoration: 'none'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(162, 155, 254, 0.2)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(162, 155, 254, 0.1)'}
               >
                 Back
               </a>
@@ -1001,8 +1009,15 @@ export default function IntakeFormPage() {
               <button
                 type="button"
                 onClick={prevStep}
-                className="text-sm rounded-xl font-medium transition-colors mt-5"
-                style={{ borderColor: '#ffdd4f', borderWidth: '1px', color: '#ffdd4f', backgroundColor: 'transparent', padding: '12px 16px' }}
+                className="inline-flex items-center justify-center rounded-full text-sm font-semibold transition-colors"
+                style={{ 
+                  border: '1px solid rgba(162, 155, 254, 0.5)',
+                  backgroundColor: 'rgba(162, 155, 254, 0.1)',
+                  color: '#ffdd4f',
+                  padding: '10px 20px'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(162, 155, 254, 0.2)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(162, 155, 254, 0.1)'}
               >
                 Back
               </button>
@@ -1011,14 +1026,14 @@ export default function IntakeFormPage() {
               <button
                 type="button"
                 onClick={nextStep}
-                className="text-sm rounded-xl font-medium transition-all mt-5"
+                className="inline-flex items-center justify-center rounded-full text-sm font-semibold transition-colors"
                 style={{ 
-                  backgroundColor: 'transparent',
-                  borderColor: '#ffdd4f',
-                  borderWidth: '1px',
-                  color: '#ffdd4f',
-                  padding: '12px 16px'
+                  backgroundColor: '#ffdd4f',
+                  color: '#03040a',
+                  padding: '10px 20px'
                 }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 221, 79, 0.9)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffdd4f'}
               >
                 Continue
               </button>
@@ -1027,14 +1042,14 @@ export default function IntakeFormPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="text-sm rounded-xl font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed mt-5"
+                className="inline-flex items-center justify-center rounded-full text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                 style={{ 
-                  backgroundColor: 'transparent',
-                  borderColor: '#ffdd4f',
-                  borderWidth: '1px',
-                  color: '#ffdd4f',
-                  padding: '12px 16px'
+                  backgroundColor: '#ffdd4f',
+                  color: '#03040a',
+                  padding: '10px 20px'
                 }}
+                onMouseEnter={(e) => !isSubmitting && (e.currentTarget.style.backgroundColor = 'rgba(255, 221, 79, 0.9)')}
+                onMouseLeave={(e) => !isSubmitting && (e.currentTarget.style.backgroundColor = '#ffdd4f')}
               >
                 {isSubmitting ? "Sending..." : "Submit"}
               </button>

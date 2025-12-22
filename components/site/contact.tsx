@@ -32,7 +32,7 @@ export default function Contact() {
   }
 
   return (
-    <Section id="contact" eyebrow="Contact" title="Make Contact">
+    <Section id="contact" eyebrow="Contact" title="Open a Channel">
       <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
         <div className="rounded-2xl border border-brand-purple/30 bg-brand-purple/10 p-6">
           <p className="text-sm leading-6 text-neutral-300">

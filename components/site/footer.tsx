@@ -7,7 +7,7 @@ const FACEBOOK_URL =
 export default function Footer() {
   return (
     <footer className="border-t border-brand-blue/20">
-      <div className="mx-auto grid max-w-6xl gap-8 px-5 py-10 sm:grid-cols-2 sm:items-start">
+      <div className="mx-auto grid max-w-6xl gap-8 px-9 py-10 sm:grid-cols-2 sm:items-start">
         <div>
           <div className="relative h-6 w-auto mb-2" style={{ width: 'auto', minWidth: '140px' }}>
             <Image
