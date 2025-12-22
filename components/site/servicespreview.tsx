@@ -58,7 +58,7 @@ export default function ServicesPreview() {
           href="/services"
           className="hidden rounded-full border border-brand-purple/50 bg-brand-purple/10 px-4 py-2 text-sm font-semibold text-brand-yellow hover:bg-brand-purple/20 transition-colors sm:inline-flex"
         >
-          View all services
+          Service Modules
         </Link>
       </div>
 
@@ -109,7 +109,7 @@ export default function ServicesPreview() {
           href="/services"
           className="inline-flex w-full items-center justify-center rounded-full border border-brand-purple/50 bg-brand-purple/10 px-4 py-2 text-sm font-semibold text-brand-yellow hover:bg-brand-purple/20 transition-colors"
         >
-          View all services
+          Service Modules
         </Link>
       </div>
     </Section>
