@@ -51,7 +51,7 @@ export default function ServicesPreview() {
     <Section eyebrow="how it works" title="Mission Protocol">
       <div className="flex items-end justify-between gap-6">
         <p className="max-w-prose text-sm leading-6 text-neutral-300">
-          A simple, repeatable framework: prepare your mission, execute the launch,
+          A simple, repeatable framework: plan your mission, execute the launch,
           then maintain course.
         </p>
         <Link
