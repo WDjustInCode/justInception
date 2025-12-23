@@ -239,11 +239,10 @@ export default function Header() {
           </div>
         </Link>
 
-        <nav className="hidden items-center gap-20 md:flex">
-          
-          {/* Services Dropdown */}
+        <div className="flex items-center gap-3">
+          {/* Desktop Services Dropdown and Buttons */}
           <div 
-            className="relative"
+            className="hidden md:block relative"
             onMouseEnter={() => setIsDropdownOpen(true)}
             onMouseLeave={() => setIsDropdownOpen(false)}
           >
@@ -322,10 +321,7 @@ export default function Header() {
               </div>
             )}
           </div>
-        </nav>
 
-        <div className="flex items-center gap-3">
-          {/* Desktop Buttons */}
           <Link
             href="/#contact"
             className="hidden md:block rounded-full border border-brand-purple/50 bg-brand-purple/10 px-4 py-2 text-sm font-semibold text-brand-yellow hover:bg-brand-purple/20 transition-colors"
