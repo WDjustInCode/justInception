@@ -224,6 +224,7 @@ export default function Header() {
           ? "opacity-100 border-b border-brand-blue/20 bg-brand-bg/20 backdrop-blur pointer-events-auto" 
           : "opacity-0 border-b-0 bg-transparent backdrop-blur-0 pointer-events-none"
       }`}
+      style={{ willChange: 'opacity' }}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-9 py-4">
         <Link href="/" className="flex items-center gap-3">
@@ -272,6 +273,7 @@ export default function Header() {
                                 width={44}
                                 height={44}
                                 className="opacity-80"
+                                priority
                               />
                             </div>
                             <h3 className="text-xs font-bold text-brand-yellow uppercase tracking-wider whitespace-pre-line">
@@ -298,6 +300,7 @@ export default function Header() {
                                 width={36}
                                 height={36}
                                 className="opacity-70 group-hover:opacity-100 transition-opacity"
+                                priority
                               />
                             </div>
                             <div className="flex flex-col gap-0.5">
