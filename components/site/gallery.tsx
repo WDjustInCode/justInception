@@ -1,31 +1,37 @@
 import Image from "next/image";
+import Link from "next/link";
 import Section from "./section";
 
 const items = [
   {
     title: "JustInception Studio",
-    href: "/",
+    href: "/projects/justinception",
     src: "/justinception-brand-card.png",
+    isExternal: false,
   },
   {
     title: "LOCOAL",
-    href: "https://locoal.com",
+    href: "/projects/locoal",
     src: "/locoal-brand-card.png",
+    isExternal: false,
   },
   {
     title: "Azul Pool Services",
-    href: "https://azulpoolservices.com",
+    href: "/projects/azul-pool-services",
     src: "/azul-brand-card.png",
+    isExternal: false,
   },
   {
     title: "Bridge Head Capital Partners",
-    href: "https://bridgeheadcapitalpartners.com",
+    href: "/projects/bridgehead-capital",
     src: "/bcp-brand-card.png",
+    isExternal: false,
   },
   {
     title: "The Cupcake Dream Shop",
-    href: "https://thecupcakedreamshop.com",
+    href: "/projects/cupcake-dream-shop",
     src: "/cupcake-brand-card.png",
+    isExternal: false,
   },
 ];
 
@@ -55,15 +61,25 @@ export default function Gallery() {
           );
 
           return it.href ? (
-            <a
-              key={it.title}
-              href={it.href}
-              target="_blank"
-              rel="noopener"
-              className="outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-            >
-              {card}
-            </a>
+            it.isExternal ? (
+              <a
+                key={it.title}
+                href={it.href}
+                target="_blank"
+                rel="noopener"
+                className="outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+              >
+                {card}
+              </a>
+            ) : (
+              <Link
+                key={it.title}
+                href={it.href}
+                className="outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+              >
+                {card}
+              </Link>
+            )
           ) : (
             <div key={it.title}>{card}</div>
           );
