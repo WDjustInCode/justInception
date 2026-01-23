@@ -9,6 +9,7 @@ type Card = {
   description: string;
   image?: string;
   video?: string;
+  poster?: string;
 };
 
 const cards: Card[] = [
@@ -16,19 +17,19 @@ const cards: Card[] = [
     title: "Chart a Course",
     description:
       "Brand direction, design systems, and the build plan that makes shipping predictable.",
-    video: "/grok-video-telescope.mp4",
+    video: "/grok-video-telescope.mp4"
   },
   {
     title: "Launch Sequence",
     description:
       "Design + development execution: pages, interactions, performance, deployment.",
-    video: "/grok-video-rocket-ship.mp4",
+    video: "/grok-video-rocket-ship.mp4"
   },
   {
     title: "Ground Control",
     description:
       "Ongoing support, updates, and optimization to keep your brand thriving post-launch.",
-    video: "/grok-control-video.mp4",
+    video: "/grok-control-video.mp4"
   },
 ];
 
@@ -45,6 +46,14 @@ export default function ServicesPreview() {
     if (video) {
       video.pause();
       video.currentTime = 0;
+    }
+  };
+
+  const handleVideoLoadedMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    // Ensure first frame is displayed on iOS
+    const video = e.currentTarget;
+    if (video.readyState >= 2) {
+      video.currentTime = 0.1; // Seek to first frame
     }
   };
   return (
@@ -89,7 +98,9 @@ export default function ServicesPreview() {
                   loop
                   muted
                   playsInline
-                  preload="auto"
+                  preload="metadata"
+                  poster={c.poster}
+                  onLoadedMetadata={handleVideoLoadedMetadata}
                   className="w-full h-full object-contain"
                 >
                   <source src={c.video} type="video/mp4" />

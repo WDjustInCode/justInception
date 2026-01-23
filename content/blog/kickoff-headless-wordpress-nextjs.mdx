@@ -1,0 +1,111 @@
+---
+title: "Kickoff: Adding Headless WordPress to My Next.js Studio Site"
+date: "2026-01-22"
+description: "Why I’m integrating WordPress as a headless CMS behind my existing Next.js portfolio site, and the plan to ship it in small, reviewable milestones."
+tags: ["nextjs", "wordpress", "headless", "wpgraphql", "portfolio", "architecture"]
+series: "headless-wp-nextjs"
+project: "headless-wp-nextjs"
+---
+
+## What I’m building
+
+My studio site is a Next.js marketing and portfolio site. It started as a straightforward “services + work” site, and over time it became the primary way I present my work publicly.
+
+Now I’m adding **WordPress as a headless CMS** behind that same Next.js frontend. The goal is to keep the modern frontend, Next.js, while plugging in WordPress, a CMS that is widely used and commonly expected in real-world projects.
+
+In short:
+
+- **Next.js stays the frontend.**
+- **WordPress becomes the content backend.**
+
+## Why headless WordPress (and why now)
+
+While searching for new opportunities, I noticed something consistent: WordPress roles are still very common, and many teams rely on WordPress for managing content.
+
+I already have strong momentum with Next.js, so rather than switching platforms entirely, I’m using this project to demonstrate something I expect to do in real work environments:
+
+> Integrate a well-established platform like WordPress into a modern frontend stack like Next.js in a way that is maintainable, secure, and performant.
+
+This is also a portfolio upgrade. It turns my site from “static marketing pages” into a real content platform with:
+
+- editable case studies and project writeups  
+- publishable build logs (like this series)  
+- a cleaner content workflow that does not require code changes for every copy update  
+
+## Why not just build a traditional WordPress theme?
+
+Traditional WordPress theming is still a great solution in many cases, especially when plugin compatibility and simplicity matter more than frontend architecture.
+
+For *this* site, I’m specifically optimizing for:
+
+- modern frontend performance patterns (SSR, SSG, and ISR)  
+- a component-driven UI system  
+- full control over routing and page composition  
+- reducing the public-facing WordPress attack surface  
+
+Headless isn’t automatically “better.” It’s a trade-off. This project is about understanding those trade-offs and implementing them intentionally.
+
+## Guiding principles for this build
+
+I’m trying to keep this effort realistic and production-minded:
+
+### 1) WordPress is a CMS, not a page builder
+WordPress will store structured content and media. Next.js will own layout and presentation.
+
+### 2) Incremental milestones over a “big bang”
+I want each step to be shippable and reviewable. The site should stay stable throughout the process.
+
+### 3) Stable URLs and minimal future churn
+I’m keeping blog routes stable (`/blog` and `/blog/[slug]`) so I can migrate from local MDX to WordPress without breaking links.
+
+### 4) Keep the seam clean
+The frontend should depend on a small data-access layer so swapping content sources (MDX → WPGraphQL) doesn’t require rewriting pages.
+
+## Current state (what’s already done)
+
+Before wiring up WordPress, I implemented a small blog feature inside the Next.js App Router:
+
+- `/blog` index  
+- `/blog/[slug]` post pages  
+- MDX content stored locally in `content/blog/*.mdx`  
+- frontmatter metadata (title, date, tags, etc.)  
+
+This is intentionally temporary. It lets me start publishing immediately, and it sets the URL structure I’ll keep when WordPress becomes the source of truth.
+
+## The plan (high level)
+
+Here’s the initial roadmap. I’ll write follow-up posts as each milestone lands.
+
+### Milestone 1: Headless WordPress foundation
+- Provision a WordPress instance (local first, then hosted)
+- Install and configure WPGraphQL
+- Define content modeling conventions (posts, tags, featured images, etc.)
+
+### Milestone 2: Read path in Next.js (MDX → WPGraphQL)
+- Implement a WordPress-backed blog data layer
+- Swap `/blog` and `/blog/[slug]` to read from WPGraphQL
+- Keep routes and UI stable
+
+### Milestone 3: Preview and editorial workflow
+- Draft previews from WordPress into Next.js
+- Decide on an authentication approach for preview endpoints
+- Validate the authoring workflow end-to-end
+
+### Milestone 4: Revalidation strategy
+- Start with ISR (Incremental Static Regeneration)
+- Add on-demand revalidation via WordPress webhooks
+- Confirm caching behavior and deployment environment specifics
+
+### Milestone 5: Migrate portfolio content into WordPress
+- Case studies and project entries as structured content
+- Tie project pages to related posts (devlog relationship)
+
+## What I’ll share publicly (and what I won’t)
+
+I’ll share architecture decisions, implementation notes, and lessons learned.
+
+I won’t share anything proprietary from client work or from any internal systems I’ve worked on. This series is strictly about building and documenting a public portfolio project.
+
+## Next up
+
+Next post: I’ll define the WordPress content model and the GraphQL queries I want my Next.js site to depend on. That will become the contract between the CMS and the frontend.
