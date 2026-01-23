@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useRef, useEffect, useState } from "react";
 import Section from "./section";
 
 type Card = {
@@ -33,6 +34,112 @@ const cards: Card[] = [
   },
 ];
 
+function VideoWithPoster({ video, poster, title }: { video: string; poster?: string; title: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [posterUrl, setPosterUrl] = useState<string | null>(poster || null);
+  const [hasTriedGenerate, setHasTriedGenerate] = useState(false);
+
+  useEffect(() => {
+    // If static poster is provided, use it
+    if (poster) {
+      setPosterUrl(poster);
+      return;
+    }
+
+    const videoEl = videoRef.current;
+    if (!videoEl || hasTriedGenerate) return;
+
+    const generatePoster = () => {
+      try {
+        if (posterUrl) return; // Already have a poster
+        
+        const canvas = document.createElement("canvas");
+        const width = videoEl.videoWidth;
+        const height = videoEl.videoHeight;
+        
+        if (width > 0 && height > 0) {
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          
+          if (ctx) {
+            ctx.drawImage(videoEl, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+            setPosterUrl(dataUrl);
+            setHasTriedGenerate(true);
+          }
+        }
+      } catch (error) {
+        console.error("Error generating poster:", error);
+      }
+    };
+
+    const attemptGenerate = () => {
+      if (videoEl.readyState >= 2 && videoEl.videoWidth > 0 && videoEl.videoHeight > 0) {
+        // Video has dimensions, try to capture frame
+        if (videoEl.currentTime === 0) {
+          videoEl.currentTime = 0.01;
+        } else {
+          generatePoster();
+        }
+      }
+    };
+
+    const handleLoadedMetadata = () => {
+      attemptGenerate();
+    };
+
+    const handleLoadedData = () => {
+      attemptGenerate();
+    };
+
+    const handleSeeked = () => {
+      if (!posterUrl && videoEl.readyState >= 2) {
+        generatePoster();
+      }
+    };
+
+    const handleCanPlay = () => {
+      attemptGenerate();
+    };
+
+    // Try to load video metadata immediately
+    if (videoEl.readyState >= 1) {
+      attemptGenerate();
+    }
+
+    // Listen for various events
+    videoEl.addEventListener("loadedmetadata", handleLoadedMetadata);
+    videoEl.addEventListener("loadeddata", handleLoadedData);
+    videoEl.addEventListener("seeked", handleSeeked);
+    videoEl.addEventListener("canplay", handleCanPlay);
+
+    // Force load on iOS by setting currentTime (triggers metadata load)
+    videoEl.load();
+
+    return () => {
+      videoEl.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      videoEl.removeEventListener("loadeddata", handleLoadedData);
+      videoEl.removeEventListener("seeked", handleSeeked);
+      videoEl.removeEventListener("canplay", handleCanPlay);
+    };
+  }, [video, poster, posterUrl, hasTriedGenerate]);
+
+  return (
+    <video
+      ref={videoRef}
+      loop
+      muted
+      playsInline
+      preload="metadata"
+      poster={posterUrl || undefined}
+      className="w-full h-full object-contain"
+    >
+      <source src={video} type="video/mp4" />
+    </video>
+  );
+}
+
 export default function ServicesPreview() {
   const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
     const video = e.currentTarget.querySelector("video");
@@ -46,14 +153,6 @@ export default function ServicesPreview() {
     if (video) {
       video.pause();
       video.currentTime = 0;
-    }
-  };
-
-  const handleVideoLoadedMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
-    // Ensure first frame is displayed on iOS
-    const video = e.currentTarget;
-    if (video.readyState >= 2) {
-      video.currentTime = 0.1; // Seek to first frame
     }
   };
   return (
@@ -94,17 +193,7 @@ export default function ServicesPreview() {
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
               >
-                <video
-                  loop
-                  muted
-                  playsInline
-                  preload="metadata"
-                  poster={c.poster}
-                  onLoadedMetadata={handleVideoLoadedMetadata}
-                  className="w-full h-full object-contain"
-                >
-                  <source src={c.video} type="video/mp4" />
-                </video>
+                <VideoWithPoster video={c.video} poster={c.poster} title={c.title} />
               </div>
             )}
             <h3 className="text-lg font-semibold tracking-tight text-brand-yellow">{c.title}</h3>
