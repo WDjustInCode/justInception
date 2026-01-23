@@ -177,7 +177,7 @@ export default function ServicesPreview() {
             className="rounded-2xl border border-brand-blue/30 bg-brand-blue/10 p-6 shadow-sm"
           >
             {c.image && (
-              <div className="relative w-full aspect-square bg-brand-bg border-4 border-transparent hover:border-brand-yellow rounded-lg overflow-hidden mb-4 flex items-center justify-center transition-colors duration-300">
+              <div className="relative w-full aspect-square bg-brand-bg rounded-lg overflow-hidden mb-4 flex items-center justify-center transition-colors duration-300">
                 <Image
                   src={c.image}
                   alt={c.title}
@@ -189,7 +189,7 @@ export default function ServicesPreview() {
             )}
             {c.video && (
               <div 
-                className="relative w-full aspect-square bg-brand-bg border-4 border-transparent hover:border-brand-yellow rounded-lg overflow-hidden mb-4 transition-colors duration-300"
+                className="relative w-full aspect-square bg-brand-bg rounded-lg overflow-hidden mb-4 transition-colors duration-300"
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
               >
