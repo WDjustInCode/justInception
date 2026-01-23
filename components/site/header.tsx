@@ -323,6 +323,13 @@ export default function Header() {
           </div>
 
           <Link
+            href="/blog"
+            className="hidden md:block text-sm text-neutral-300 hover:text-brand-yellow transition-colors"
+          >
+            Logs
+          </Link>
+
+          <Link
             href="/#contact"
             className="hidden md:block rounded-full border border-brand-purple/50 bg-brand-purple/10 px-4 py-2 text-sm font-semibold text-brand-yellow hover:bg-brand-purple/20 transition-colors"
           >
@@ -359,6 +366,14 @@ export default function Header() {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Service Modules
+              </Link>
+              
+              <Link
+                href="/blog"
+                className="text-base text-neutral-300 hover:text-brand-yellow transition-colors py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Logs
               </Link>
               
               <div className="border-t border-brand-purple/20 my-2"></div>
