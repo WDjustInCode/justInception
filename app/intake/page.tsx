@@ -1067,7 +1067,7 @@ export default function IntakeFormPage() {
   );
 }
 
-// ---- UI helpers ----
+// ---- UI helpers -----
 
 type CheckboxProps = {
   checked: boolean;
