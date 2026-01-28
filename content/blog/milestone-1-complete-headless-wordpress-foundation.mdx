@@ -117,7 +117,7 @@ If you use Cursor (or another code-assistant IDE), you can make these rules pers
 
 Add a `.cursor/rules/` folder in your WordPress repo. Create a rule file (e.g. `headless-wordpress.mdc`) with a short description in the frontmatter, `alwaysApply: true`, and the conventions above (Docker, ACF, WPGraphQL, content modeling, Railway env vars). You can also put the same text in a human-facing doc (I use [docs/HEADLESS-WORDPRESS-CONVENTIONS.md](https://github.com/justinception/headless-wordpress/blob/main/docs/HEADLESS-WORDPRESS-CONVENTIONS.md)) and link it from your README so you and Cursor use the same source.
 
-You can copy the rules and conventions from this project on GitHub: [headless-wordpress](https://github.com/justinception/headless-wordpress) (`.cursor/rules/headless-wordpress.mdc` and `docs/HEADLESS-WORDPRESS-CONVENTIONS.md`).
+You can copy the rules and conventions from this project on GitHub: [headless-wordpress](https://github.com/WDjustInCode/headless-wordpress.git) (`.cursor/rules/headless-wordpress.mdc` and `docs/HEADLESS-WORDPRESS-CONVENTIONS.md`).
 
 Once that's in place, every new Cursor session in that repo loads those constraints. You spend less time re-explaining your stack and more time shipping.
 
@@ -131,7 +131,7 @@ So Milestone 2 (move `/blog` from MDX to WordPress GraphQL without changing rout
 
 If you're building something similar, don't just copy the Dockerfile or ACF config. Copy the rules you want Cursor to follow, put them in your tooling, and let the machine learn from these mistakes instead of re-running them.
 
-Rules and conventions on GitHub: [github.com/justinception/headless-wordpress](https://github.com/justinception/headless-wordpress). See `.cursor/rules/` and `docs/HEADLESS-WORDPRESS-CONVENTIONS.md`.
+Rules and conventions on GitHub: [github.com/justinception/headless-wordpress](https://github.com/WDjustInCode/headless-wordpress.git). See `.cursor/rules/` and `docs/HEADLESS-WORDPRESS-CONVENTIONS.md`.
 
 ---
 

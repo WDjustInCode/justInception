@@ -1,0 +1,29 @@
+Just shipped Milestone 1 of a headless WordPress project. I used ChatGPT and Cursor (ChatGPT for planning/research, Cursor for implementation) to stand up WordPress, add WPGraphQL, deploy, move on.
+
+What actually happened: I hit a bunch of sharp edges, and turned those mistakes into rules Cursor can now follow automatically.
+
+The mistakes were predictable in hindsight:
+- Cursor kept suggesting `docker-compose` when only `docker compose` exists
+- It tried to run PHP on my host when everything lives in containers
+- It overwrote `/var/www/html` instead of respecting the WordPress Docker image's entrypoint
+- It treated WPGraphQL's disabled public introspection as a broken API instead of a security setting
+
+Each mistake became a rule. Now every new Cursor session in that repo starts with those constraints loaded.
+
+I wrote up what we got wrong, what we changed, and how to configure Cursor so you don't hit the same walls. The rules are on GitHub if you want to copy them.
+
+Links in first comment.
+
+#WordPress #HeadlessCMS #WPGraphQL #Docker #Cursor #ChatGPT #WebDevelopment
+
+
+Links:
+
+Kickoff post (project overview):
+https://justinception.studio/blog/kickoff-headless-wordpress-nextjs
+
+Milestone 1 write-up (headless WordPress foundation + Cursor rules):
+https://justinception.studio/blog/milestone-1-complete-headless-wordpress-foundation
+
+Headless WordPress infra repo:
+https://github.com/WDjustInCode/headless-wordpress.git
