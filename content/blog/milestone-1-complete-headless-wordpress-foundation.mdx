@@ -1,0 +1,160 @@
+---
+title: "Milestone 1 complete: headless WordPress foundation – intended vs actual"
+date: "2026-01-27"
+description: "Planned a quick foundation. Shipped something heavier and more production-ready, with ChatGPT and Cursor. What we built, what broke, and how to configure Cursor so you don't hit the same walls."
+tags: ["nextjs", "wordpress", "headless", "wpgraphql", "acf", "graphql", "railway", "architecture"]
+series: "headless-wp-nextjs"
+project: "headless-wp-nextjs"
+---
+
+Milestone 1 shipped January 24.
+
+The plan was simple: stand up WordPress, add WPGraphQL, sketch content conventions, deploy somewhere, then move to Next.js. I used ChatGPT and Cursor (auto model) from the start: ChatGPT for planning, content writing, and research; Cursor for implementation. We ran into a lot of sharp edges and turned those mistakes into rules Cursor now follows by default.
+
+So this post is not "look how cleanly I shipped this." It's "here's what we got wrong, what we changed, and how you can set up Cursor so you don't repeat it."
+
+---
+
+### Intended vs actual (with ChatGPT and Cursor in the loop)
+
+**Local env**  
+Planned: basic WordPress install (Docker or manual).  
+Done: Docker Compose, pinned versions, verification checklists, `ENVIRONMENT.md`, and rules so Cursor stops suggesting host-only commands when everything runs in containers.  
+Why: I wanted zero drift between my machine and deploys, and I got tired of Cursor telling me to run `php` on the host when the runtime lives in the container.
+
+**Configuration**  
+Planned: set permalinks, disable indexing, etc.  
+Done: must-use plugins that enforce headless defaults (permalinks, no menus/widgets), plus a conventions file Cursor reads.  
+Why: config as code, and so Cursor doesn't tell me to toggle things in wp-admin that are locked down.
+
+**Security**  
+Planned: smaller attack surface (headless).  
+Done: file edit off, version scrubbed, minimal plugins documented, all of it encoded as persistent rules for Cursor.  
+Why: I wanted the hosted deploy to be safe from day one.
+
+**WPGraphQL**  
+Planned: install the plugin, confirm the endpoint works.  
+Done: installed, plus a 7-test validation suite, fixtures, and rules so Cursor treats "introspection disabled for public requests" as a security setting, not a broken API.  
+Why: I needed repeatable proof the endpoint works, and I needed Cursor to stop "fixing" a schema we'd intentionally locked down.
+
+**Content modeling**  
+Planned: define conventions (tags, images, basic posts).  
+Done: 15 semantic ACF fields (relationship and repeater), must-use registration, verification scripts, and explicit rules about what lives in ACF vs what stays in MDX.  
+Why: structure for the frontend, and to stop Cursor from inventing "helpful" fields that weren't in the plan.
+
+**Hosting**  
+Planned: quick hosted deploy.  
+Done: Railway, custom entrypoint (Apache MPM fix), config template, env fallbacks, and rules so Cursor doesn't overwrite `/var/www/html`.  
+Why: the official WordPress image has strong opinions. We had to follow them, and I wanted Cursor to follow them too instead of fighting the entrypoint.
+
+---
+
+### Where Cursor and I went wrong (and what we changed)
+
+A lot of the work in Milestone 1 was debugging Cursor's first suggestions and turning those into guardrails. Below are the main categories and how I'd set up Cursor so you don't hit them.
+
+---
+
+#### 1. Environment and Docker: stop arguing with reality
+
+We kept trying `docker-compose` on a machine that only has `docker compose`. We ran `php` on the host when the runtime is in the `wordpress` container. We assumed WP-CLI was in the official `wordpress:php8.3-apache` image. We wrote CLI scripts that called `current_user_can()` even though there's no logged-in user in Docker.
+
+We fixed it with rules: prefer `docker compose` over `docker-compose`; run all WordPress/PHP scripts via `docker compose exec wordpress php ...`; probe once for `wp` and if it's missing, use `curl`/`unzip` and PHP scripts; in CLI scripts, either set a user with `wp_set_current_user()` or skip `current_user_can()`.
+
+Prompt you can steal:
+
+> "For this project, WordPress and PHP run only inside a `wordpress` Docker container. Use `docker compose exec wordpress php ...` for scripts. Prefer `docker compose` over `docker-compose`. Don't assume WP-CLI exists unless we install it."
+
+Paste that at the start of any Cursor session that touches this stack.
+
+---
+
+#### 2. Official WordPress image: respect the contract
+
+The first Dockerfile overwrote `/var/www/html` with `COPY . /var/www/html`. We copied `wp-content` straight into `/var/www/html/wp-content` instead of the source tree. We hit Apache's "More than one MPM loaded" error and at first treated it as a nuisance instead of a hard failure.
+
+We fixed it: copy only project bits (`wp-config-railway.php`, `wp-content/`) into `/usr/src/wordpress`. Let the official entrypoint put things in `/var/www/html`. We added an entrypoint script that disables extra MPMs and enables one, and wrote that into the rules.
+
+Prompt you can steal:
+
+> "When writing Dockerfiles for WordPress, don't overwrite `/var/www/html` or fight the official entrypoint. Copy `wp-config-railway.php` and `wp-content/` into `/usr/src/wordpress` and let the entrypoint copy them into place. Treat Apache MPM conflicts as fatal and fix them explicitly."
+
+If Cursor suggests `COPY . /var/www/html`, stop and paste that.
+
+---
+
+#### 3. ACF and WPGraphQL: be explicit, not magical
+
+We registered ACF field groups in PHP and expected them to show up in GraphQL. We queried `excerpt` on `Page` because it exists on `Post`. We treated WPGraphQL's disabled public introspection as a broken API. We tried to "save" local ACF groups straight into the DB with ad-hoc scripts.
+
+We fixed it: set `show_in_graphql: 1` and a clear `graphql_field_name` on any group we query. Check each type (`Post` vs `Page`); don't assume they match. Treat "introspection is not allowed for public requests" as a security setting, not a bug. We stopped writing ACF config into the DB and use the GUI or `acf/init` instead.
+
+Prompt you can steal:
+
+> "When working with ACF and WPGraphQL, set `show_in_graphql: 1` and a `graphql_field_name` on any field group we expect to query. Don't assume `Page` has the same fields as `Post`; check the schema per type. Treat 'introspection is not allowed for public requests' as an expected security setting, not an API bug."
+
+That alone avoids most of the weirdness we ran into.
+
+---
+
+#### 4. Content modeling and MDX migration: one source of truth
+
+We added a parallel markdown content field in WordPress and kept MDX. We pasted MDX frontmatter into the post body, so GraphQL `content` had YAML at the top. We let Cursor suggest extra fields that weren't in the original model.
+
+We fixed it: WordPress HTML is the single source of truth for body content. MDX frontmatter (date, description, tags, series, project) goes into WordPress/ACF fields. Only the MDX body goes in the editor. We documented that Relationship and Repeater are semantic data here, not layout.
+
+Prompt you can steal:
+
+> "For this blog, WordPress HTML is the single source of truth for content. MDX frontmatter (date, description, tags, series, project) maps to WordPress/ACF fields; only the MDX body becomes the post content. Don't add new content fields unless they fit that model."
+
+One line like that cuts a lot of accidental complexity.
+
+---
+
+### How I wired this into Cursor (so it sticks)
+
+If you use Cursor (or another code-assistant IDE), you can make these rules persistent instead of repeating them every session.
+
+Add a `.cursor/rules/` folder in your WordPress repo. Create a rule file (e.g. `headless-wordpress.mdc`) with a short description in the frontmatter, `alwaysApply: true`, and the conventions above (Docker, ACF, WPGraphQL, content modeling, Railway env vars). You can also put the same text in a human-facing doc (I use [docs/HEADLESS-WORDPRESS-CONVENTIONS.md](https://github.com/justinception/headless-wordpress/blob/main/docs/HEADLESS-WORDPRESS-CONVENTIONS.md)) and link it from your README so you and Cursor use the same source.
+
+You can copy the rules and conventions from this project on GitHub: [headless-wordpress](https://github.com/justinception/headless-wordpress) (`.cursor/rules/headless-wordpress.mdc` and `docs/HEADLESS-WORDPRESS-CONVENTIONS.md`).
+
+Once that's in place, every new Cursor session in that repo loads those constraints. You spend less time re-explaining your stack and more time shipping.
+
+---
+
+### Why this matters for Milestone 2
+
+Milestone 1 was supposed to be "spin up WordPress and move on." What actually happened: we spun up WordPress, broke several things with Cursor, then taught Cursor not to break them again.
+
+So Milestone 2 (move `/blog` from MDX to WordPress GraphQL without changing routes or UI) starts with a Docker story Cursor already understands, a GraphQL schema it doesn't misdiagnose, and a content model that matches both MDX and WordPress. We also have a shared rulebook.
+
+If you're building something similar, don't just copy the Dockerfile or ACF config. Copy the rules you want Cursor to follow, put them in your tooling, and let the machine learn from these mistakes instead of re-running them.
+
+Rules and conventions on GitHub: [github.com/justinception/headless-wordpress](https://github.com/justinception/headless-wordpress). See `.cursor/rules/` and `docs/HEADLESS-WORDPRESS-CONVENTIONS.md`.
+
+---
+
+### Trade-offs worth calling out
+
+Must-use plugins for config and fields: they lock settings and keep everything in version control. Downside: no admin toggle to turn them off temporarily. A lot of teams use Bedrock-style Composer and ACF local JSON instead. I went no-drift for this project.
+
+Pure-PHP ACF registration: full git history, no database config. Editors can't change field settings in the UI. Local JSON is more common when people need to tweak things in the admin. I went pure PHP to avoid database state.
+
+Strictly semantic fields (no layout helpers): presentation stays out of WordPress. Editors don't get tabs, message fields, or grouping. Many headless setups allow light editor conveniences (message fields for instructions, clone for repetition) and do real layout in Next.js. I stayed strict for consistency.
+
+ACF relationship and repeater vs native taxonomies: relationship fields give richer GraphQL and per-relation data. Native categories/tags have simpler admin and scale better for huge taxonomies. ACF fit the content volume here. At bigger scale native would probably win.
+
+Apache container and custom entrypoint: we got it stable after fixing MPM issues. A lot of people prefer PHP-FPM and nginx in containers. Apache was the path of least resistance with the official image; I might switch later.
+
+---
+
+### What stood out
+
+Validation scripts for GraphQL and fields catch problems before the frontend sees them. An infrastructure-as-code approach works for WordPress once you commit to it. Following the base Docker image's conventions saves more time than fighting them. Early hardening and repeatability slow the first milestone but cut surprises later.
+
+Milestone 1 ended up as foundation plus armor, not just scaffolding. That's the base we need before swapping the blog read path.
+
+Next: Milestone 2 – move `/blog` from MDX to WordPress GraphQL without visible changes to routes or UI.
+
+See you at Milestone 2.
