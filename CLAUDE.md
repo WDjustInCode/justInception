@@ -36,7 +36,14 @@ npm run lint     # Run ESLint
 - Pages, sections, content handling, integrations, and add-ons
 - Timeline multipliers (fast-track, standard, relaxed)
 
-`app/intake/page.tsx` is the form UI; `app/api/intake/route.ts` handles submission by calling the quote engine, writing to Google Sheets, and sending a Resend email.
+The intake form lives in `app/intake/` and is split across several files:
+- `page.tsx` — thin orchestrator: step state, submit logic, navigation, layout
+- `IntakeContext.tsx` — `FormData` type, `IntakeProvider`, `useIntake()` hook, localStorage persistence
+- `steps/Step1Contact.tsx` through `Step5Review.tsx` — one component per form step
+- `components/ui.tsx` — shared primitives: `Field`, `TextAreaField`, `Checkbox`, `SummaryRow`
+- `components/SuccessView.tsx` — post-submit confirmation screen
+
+`app/api/intake/route.ts` handles submission by calling the quote engine, writing to Google Sheets, and sending a Resend email.
 
 ### API routes
 
@@ -64,17 +71,14 @@ RESEND_API_KEY=
 
 ## Needs improvement
 
-**#1 — `app/intake/page.tsx` is a monolithic 1000+ line client component**
-All form state, multi-step logic, page toggle handlers, and rendering live in one `"use client"` file. This makes it difficult to test or modify individual steps. Each step should be its own component, with shared state lifted or managed via context/reducer.
-
-**#2 — Projects are hardcoded in `lib/projects.ts`**
+**#1 — Projects are hardcoded in `lib/projects.ts`**
 Adding or updating a project requires a code change and a full deployment. The blog already uses MDX files — projects should follow the same pattern so content can be updated without touching source code.
 
-**#3 — No client-side form validation before submission**
+**#2 — No client-side form validation before submission**
 The intake form has no validation on required fields before calling the API. Users only discover missing fields when the server responds. At minimum, email format and required fields (name, email, site type) should be checked before `handleSubmit` fires.
 
-**#4 — `app/api/contact/route.ts` lacks the validation added to the intake route**
+**#3 — `app/api/contact/route.ts` lacks the validation added to the intake route**
 The contact form API was not updated alongside the intake API. It should receive the same treatment: typed request body, required field enforcement (name, email), and HTML-escaping of any user-supplied fields before they are interpolated into email templates.
 
-**#5 — No rate limiting on `POST /api/contact`**
-`/api/intake` is covered by a Vercel WAF rule (Fixed Window, 10 req/60s/IP, returns 429). The contact route shares that rule, but unlike the intake route it has no server-side input validation or HTML-escaping — see #4.
+**#4 — No rate limiting on `POST /api/contact`**
+`/api/intake` is covered by a Vercel WAF rule (Fixed Window, 10 req/60s/IP, returns 429). The contact route shares that rule, but unlike the intake route it has no server-side input validation or HTML-escaping — see #3.
