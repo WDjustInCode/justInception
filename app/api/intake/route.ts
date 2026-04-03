@@ -3,6 +3,126 @@ import { google } from "googleapis";
 import { Resend } from "resend";
 import { calculateQuote, formatQuote, type QuoteFormInput, SITE_TYPES, CONTENT_OPTIONS, LEAD_GEN, INTEGRATIONS, FEATURE_COMPLEXITY, TIMELINE_MULTIPLIERS, PAGE_SECTIONS, type QuoteResult } from "@/lib/quote";
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
+type IntakeBody = {
+  name: string;
+  email: string;
+  company?: string;
+  phone?: string;
+  website?: string;
+  siteType?: keyof typeof SITE_TYPES;
+  timeline?: keyof typeof TIMELINE_MULTIPLIERS;
+  isRebuild?: boolean;
+  launchDate?: string;
+  selectedPages?: (keyof typeof PAGE_SECTIONS)[];
+  selectedPagesToUpdate?: (keyof typeof PAGE_SECTIONS)[];
+  selectedPagesToAdd?: (keyof typeof PAGE_SECTIONS)[];
+  serviceDetailsCount?: number;
+  caseStudyCount?: number;
+  courseCount?: number;
+  productDetailsCount?: number;
+  totalPages?: number;
+  updatedPages?: number;
+  newPages?: number;
+  contentHandling?: keyof typeof CONTENT_OPTIONS;
+  projectCount?: number;
+  productCount?: number;
+  featureComplexity?: keyof typeof FEATURE_COMPLEXITY;
+  leadGenType?: keyof typeof LEAD_GEN;
+  integrations?: (keyof typeof INTEGRATIONS)[];
+  wantsCustomAnimations?: boolean;
+  isBudgetConscious?: boolean;
+  wantsBrandKit?: boolean;
+  extraNotes?: string;
+};
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validateBody(raw: unknown): IntakeBody {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    throw new Error("Invalid request body");
+  }
+  const b = raw as Record<string, unknown>;
+
+  // Required fields
+  if (typeof b.name !== "string" || b.name.trim() === "") {
+    throw new Error("name is required");
+  }
+  if (typeof b.email !== "string" || !EMAIL_RE.test(b.email.trim())) {
+    throw new Error("A valid email is required");
+  }
+
+  // Enum validators
+  const validSiteTypes = Object.keys(SITE_TYPES) as (keyof typeof SITE_TYPES)[];
+  const validTimelines = Object.keys(TIMELINE_MULTIPLIERS) as (keyof typeof TIMELINE_MULTIPLIERS)[];
+  const validContent = Object.keys(CONTENT_OPTIONS) as (keyof typeof CONTENT_OPTIONS)[];
+  const validLeadGen = Object.keys(LEAD_GEN) as (keyof typeof LEAD_GEN)[];
+  const validIntegrations = Object.keys(INTEGRATIONS) as (keyof typeof INTEGRATIONS)[];
+  const validComplexity = Object.keys(FEATURE_COMPLEXITY) as (keyof typeof FEATURE_COMPLEXITY)[];
+  const validPages = Object.keys(PAGE_SECTIONS) as (keyof typeof PAGE_SECTIONS)[];
+
+  function requireEnum<T extends string>(value: unknown, valid: T[], field: string): T | undefined {
+    if (value === undefined || value === null || value === "") return undefined;
+    if (!valid.includes(value as T)) throw new Error(`Invalid value for ${field}`);
+    return value as T;
+  }
+
+  function requireEnumArray<T extends string>(value: unknown, valid: T[], field: string): T[] {
+    if (!Array.isArray(value)) return [];
+    for (const item of value) {
+      if (!valid.includes(item as T)) throw new Error(`Invalid value in ${field}: ${item}`);
+    }
+    return value as T[];
+  }
+
+  function requirePositiveInt(value: unknown, field: string): number | undefined {
+    if (value === undefined || value === null || value === "") return undefined;
+    const n = Number(value);
+    if (!Number.isInteger(n) || n < 0) throw new Error(`${field} must be a non-negative integer`);
+    return n;
+  }
+
+  return {
+    name: b.name.trim(),
+    email: (b.email as string).trim(),
+    company: typeof b.company === "string" ? b.company.trim() : undefined,
+    phone: typeof b.phone === "string" ? b.phone.trim() : undefined,
+    website: typeof b.website === "string" ? b.website.trim() : undefined,
+    siteType: requireEnum(b.siteType, validSiteTypes, "siteType"),
+    timeline: requireEnum(b.timeline, validTimelines, "timeline"),
+    isRebuild: typeof b.isRebuild === "boolean" ? b.isRebuild : false,
+    launchDate: typeof b.launchDate === "string" ? b.launchDate.trim() : undefined,
+    selectedPages: requireEnumArray(b.selectedPages, validPages, "selectedPages"),
+    selectedPagesToUpdate: requireEnumArray(b.selectedPagesToUpdate, validPages, "selectedPagesToUpdate"),
+    selectedPagesToAdd: requireEnumArray(b.selectedPagesToAdd, validPages, "selectedPagesToAdd"),
+    serviceDetailsCount: requirePositiveInt(b.serviceDetailsCount, "serviceDetailsCount"),
+    caseStudyCount: requirePositiveInt(b.caseStudyCount, "caseStudyCount"),
+    courseCount: requirePositiveInt(b.courseCount, "courseCount"),
+    productDetailsCount: requirePositiveInt(b.productDetailsCount, "productDetailsCount"),
+    totalPages: requirePositiveInt(b.totalPages, "totalPages"),
+    updatedPages: requirePositiveInt(b.updatedPages, "updatedPages"),
+    newPages: requirePositiveInt(b.newPages, "newPages"),
+    contentHandling: requireEnum(b.contentHandling, validContent, "contentHandling"),
+    projectCount: requirePositiveInt(b.projectCount, "projectCount"),
+    productCount: requirePositiveInt(b.productCount, "productCount"),
+    featureComplexity: requireEnum(b.featureComplexity, validComplexity, "featureComplexity"),
+    leadGenType: requireEnum(b.leadGenType, validLeadGen, "leadGenType"),
+    integrations: requireEnumArray(b.integrations, validIntegrations, "integrations"),
+    wantsCustomAnimations: typeof b.wantsCustomAnimations === "boolean" ? b.wantsCustomAnimations : false,
+    isBudgetConscious: typeof b.isBudgetConscious === "boolean" ? b.isBudgetConscious : false,
+    wantsBrandKit: typeof b.wantsBrandKit === "boolean" ? b.wantsBrandKit : false,
+    extraNotes: typeof b.extraNotes === "string" ? b.extraNotes.trim() : undefined,
+  };
+}
+
 async function getSheetsClient() {
   let privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;
   
@@ -28,7 +148,7 @@ async function getSheetsClient() {
 }
 
 async function sendQuoteEmail(
-  body: any,
+  body: IntakeBody,
   quoteResult: QuoteResult,
   formattedQuote: string
 ) {
@@ -40,7 +160,7 @@ async function sendQuoteEmail(
 
   const resend = new Resend(process.env.RESEND_API_KEY);
 
-  // Format contact information
+  // Format contact information (plain text — used in both <pre>-style HTML block and text email)
   const contactInfo = [
     body.name && `Name: ${body.name}`,
     body.company && `Company: ${body.company}`,
@@ -48,6 +168,7 @@ async function sendQuoteEmail(
     body.phone && `Phone: ${body.phone}`,
     body.website && `Website: ${body.website}`,
   ].filter(Boolean).join("\n");
+  const contactInfoHtml = escapeHtml(contactInfo);
 
   // Format project details
   const projectDetails: string[] = [];
@@ -258,7 +379,7 @@ async function sendQuoteEmail(
             <div class="section">
               <div class="section-title">Contact Information</div>
               <div class="section-content">
-                <div class="contact-info">${contactInfo}</div>
+                <div class="contact-info">${contactInfoHtml}</div>
               </div>
             </div>
 
@@ -329,7 +450,7 @@ async function sendQuoteEmail(
             <div class="section">
               <div class="section-title">Client Notes</div>
               <div class="section-content">
-                <p>${body.extraNotes.replace(/\n/g, "<br>")}</p>
+                <p>${escapeHtml(body.extraNotes!).replace(/\n/g, "<br>")}</p>
               </div>
             </div>
             ` : ""}
@@ -402,12 +523,6 @@ ${breakdownList}
   `.trim();
 
   try {
-    // For Resend, you can use:
-    // 1. "onboarding@resend.dev" for testing (works immediately, no setup needed)
-    // 2. Your verified domain email (e.g., "noreply@yourdomain.com") for production
-    // To verify a domain: Go to Resend dashboard > Domains > Add Domain
-    const fromEmail = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
-    
     console.log("Attempting to send email to justin@justinception.studio...");
     const result = await resend.emails.send({
       from: "noreply@quote.justinception.studio",
@@ -431,35 +546,39 @@ ${breakdownList}
 }
 
 export async function POST(req: NextRequest) {
+  let body: IntakeBody;
   try {
-    const body = await req.json();
+    const raw = await req.json();
+    body = validateBody(raw);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Invalid request";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
 
-    // Calculate quote from submitted data
-    // Platform will be determined automatically based on requirements
+  try {
     const quoteInput: QuoteFormInput = {
-      siteType: body.siteType || undefined,
-      timeline: body.timeline || "standard",
-      isRebuild: body.isRebuild || false,
+      siteType: body.siteType,
+      timeline: body.timeline ?? "standard",
+      isRebuild: body.isRebuild ?? false,
       selectedPages: body.selectedPages,
       selectedPagesToUpdate: body.selectedPagesToUpdate,
       selectedPagesToAdd: body.selectedPagesToAdd,
-      serviceDetailsCount: body.serviceDetailsCount ? parseInt(body.serviceDetailsCount) : undefined,
-      caseStudyCount: body.caseStudyCount ? parseInt(body.caseStudyCount) : undefined,
-      courseCount: body.courseCount ? parseInt(body.courseCount) : undefined,
-      productDetailsCount: body.productDetailsCount ? parseInt(body.productDetailsCount) : undefined,
-      // Legacy support
-      totalPages: body.totalPages ? parseInt(body.totalPages) : undefined,
-      updatedPages: body.updatedPages ? parseInt(body.updatedPages) : undefined,
-      newPages: body.newPages ? parseInt(body.newPages) : undefined,
-      contentHandling: body.contentHandling || "client",
-      projectCount: body.projectCount ? parseInt(body.projectCount) : undefined,
-      productCount: body.productCount ? parseInt(body.productCount) : undefined,
+      serviceDetailsCount: body.serviceDetailsCount,
+      caseStudyCount: body.caseStudyCount,
+      courseCount: body.courseCount,
+      productDetailsCount: body.productDetailsCount,
+      totalPages: body.totalPages,
+      updatedPages: body.updatedPages,
+      newPages: body.newPages,
+      contentHandling: body.contentHandling ?? "client",
+      projectCount: body.projectCount,
+      productCount: body.productCount,
       featureComplexity: body.featureComplexity,
-      leadGenType: body.leadGenType || "none",
-      integrations: body.integrations || [],
-      wantsCustomAnimations: body.wantsCustomAnimations || false,
-      isBudgetConscious: body.isBudgetConscious || false,
-      wantsBrandKit: body.wantsBrandKit || false,
+      leadGenType: body.leadGenType ?? "none",
+      integrations: body.integrations ?? [],
+      wantsCustomAnimations: body.wantsCustomAnimations ?? false,
+      isBudgetConscious: body.isBudgetConscious ?? false,
+      wantsBrandKit: body.wantsBrandKit ?? false,
     };
 
     const quoteResult = calculateQuote(quoteInput);
