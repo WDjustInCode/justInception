@@ -21,10 +21,11 @@ npm run lint     # Run ESLint
 - `components/` — Reusable React components, organized by page (`site/`, `blog/`, `projects/`)
 - `lib/` — Core business logic: quote engine, blog data, project data
 - `content/blog/` — MDX blog posts with frontmatter
+- `content/projects/` — MDX project files with frontmatter
 
 ### Data sources
 
-- **Projects**: Hardcoded in `lib/projects.ts` as a typed array — add new projects there
+- **Projects**: MDX files in `content/projects/`, parsed by `lib/projects.ts` via gray-matter; add a new `.mdx` file to add a project — no code change needed
 - **Blog posts**: MDX files in `content/blog/`, parsed by `lib/blog.ts` via gray-matter; draft posts are hidden in production
 - **Quote submissions**: Written to Google Sheets via service account (`api/intake/route.ts`)
 
@@ -64,21 +65,18 @@ RESEND_API_KEY=
 
 - React 19 + Next.js 16 (App Router), TypeScript strict mode
 - Tailwind CSS 4
-- next-mdx-remote for blog rendering
+- next-mdx-remote for blog and project rendering
 - googleapis for Sheets, resend for email
 - React Compiler enabled (next.config.ts)
 - Path alias: `@/*` → root
 
 ## Needs improvement
 
-**#1 — Projects are hardcoded in `lib/projects.ts`**
-Adding or updating a project requires a code change and a full deployment. The blog already uses MDX files — projects should follow the same pattern so content can be updated without touching source code.
-
-**#2 — No client-side form validation before submission**
+**#1 — No client-side form validation before submission**
 The intake form has no validation on required fields before calling the API. Users only discover missing fields when the server responds. At minimum, email format and required fields (name, email, site type) should be checked before `handleSubmit` fires.
 
-**#3 — `app/api/contact/route.ts` lacks the validation added to the intake route**
+**#2 — `app/api/contact/route.ts` lacks the validation added to the intake route**
 The contact form API was not updated alongside the intake API. It should receive the same treatment: typed request body, required field enforcement (name, email), and HTML-escaping of any user-supplied fields before they are interpolated into email templates.
 
-**#4 — No rate limiting on `POST /api/contact`**
+**#3 — No rate limiting on `POST /api/contact`**
 `/api/intake` is covered by a Vercel WAF rule (Fixed Window, 10 req/60s/IP, returns 429). The contact route shares that rule, but unlike the intake route it has no server-side input validation or HTML-escaping — see #3.

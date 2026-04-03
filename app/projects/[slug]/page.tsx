@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import { MDXRemote } from "next-mdx-remote/rsc";
 import { getProjectBySlug, getAllProjectSlugs } from "@/lib/projects";
 import CompactSection from "@/components/projects/compact-section";
 import ProjectHeader from "@/components/projects/project-header";
@@ -97,17 +98,13 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       )}
 
       {/* About This Project: Overview, Services, Technologies */}
-      {(project.overview || project.services || project.technologies) && (
+      {(project.content.trim() || project.services || project.technologies) && (
         <CompactSection eyebrow="Overview" title="About This Project">
           <div className="flex flex-col gap-8">
             {/* Overview Text */}
-            {project.overview && (
-              <div className="text-base text-neutral-300 leading-relaxed max-w-3xl space-y-4">
-                {project.overview.split('\n\n').map((paragraph, index) => (
-                  <p key={index}>
-                    {paragraph.trim()}
-                  </p>
-                ))}
+            {project.content.trim() && (
+              <div className="text-base text-neutral-300 leading-relaxed max-w-3xl space-y-4 [&_p]:mb-4">
+                <MDXRemote source={project.content} />
               </div>
             )}
 
