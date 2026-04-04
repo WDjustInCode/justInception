@@ -1,44 +1,45 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect } from "react";
+import { useRef } from "react";
 
 export default function About() {
-  useEffect(() => {
-    // Add animation styles on client side only
-    if (!document.getElementById('slide-animation-styles')) {
-      const style = document.createElement('style');
-      style.id = 'slide-animation-styles';
-      style.textContent = `
-        @keyframes slideHorizontal {
-          0%, 100% {
-            transform: translateX(0);
-          }
-          50% {
-            transform: translateX(calc(100% - 14rem));
-          }
-        }
-        .slide-animation {
-          animation: slideHorizontal 8s ease-in-out infinite;
-        }
-      `;
-      document.head.appendChild(style);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handleMouseEnter = () => {
+    videoRef.current?.play();
+  };
+
+  const handleMouseLeave = () => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
     }
-  }, []);
+  };
 
   return (
-    <section id="about" className="py-32 sm:py-40">
+    <section id="about" className="pb-32 sm:pb-40">
       <div className="mx-auto w-full max-w-6xl px-9">
-        <div className="relative mb-6 h-56 w-full overflow-hidden">
-          <div className="absolute w-full slide-animation">
-            <Image
-              src="/helmet-headshot-padding-0.png"
-              alt="Justin headshot"
-              width={600}
-              height={600}
-              className="h-56 w-56 object-contain"
-            />
-          </div>
+        <div
+          className="group relative mb-6 h-[600px] w-full cursor-pointer overflow-hidden rounded-2xl outline outline-[6px] outline-transparent transition-[outline-color] duration-300 hover:outline-brand-yellow"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          <Image
+            src="/helmet-headshot-padding-0.png"
+            alt="Justin headshot"
+            width={600}
+            height={600}
+            className="absolute bottom-[25px] left-0 h-[310px] w-[269px] object-fill transition-opacity duration-300 group-hover:opacity-0"
+          />
+          <video
+            ref={videoRef}
+            src="/about.mp4"
+            muted
+            playsInline
+            loop
+            className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          />
         </div>
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-brand-purple">
           About

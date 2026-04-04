@@ -61,6 +61,15 @@ GOOGLE_SHEETS_ID=
 RESEND_API_KEY=
 ```
 
+### About section
+
+`components/site/about.tsx` — the about section below the hero. Key details:
+
+- **Image**: `/helmet-headshot-padding-0.png`, stationary at bottom-left (`absolute bottom-[25px] left-0`), stretched vertically via `object-fill`
+- **Video**: `/about.mp4` overlaid absolutely on top of the image; plays on hover, pauses and resets on mouse-out via `useRef`
+- **Hover effect**: Tailwind `group` + `group-hover:opacity-*` crossfades image out and video in; parent container gets a `brand-yellow` outline on hover
+- No top padding (`pb-32 sm:pb-40` only) so it sits flush under the hero
+
 ### Portfolio gallery
 
 The homepage gallery (`components/site/gallery.tsx`) is a server component that calls `getAllProjects()` and renders a `ProjectCard` per project (`components/site/project-card.tsx`). Cards display:
