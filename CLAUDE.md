@@ -25,7 +25,7 @@ npm run lint     # Run ESLint
 
 ### Data sources
 
-- **Projects**: MDX files in `content/projects/`, parsed by `lib/projects.ts` via gray-matter; add a new `.mdx` file to add a project — no code change needed
+- **Projects**: MDX files in `content/projects/`, parsed by `lib/projects.ts` via gray-matter; add a new `.mdx` file to add a project — no code change needed. The homepage gallery reads from `getAllProjects()` dynamically, so new files appear automatically.
 - **Blog posts**: MDX files in `content/blog/`, parsed by `lib/blog.ts` via gray-matter; draft posts are hidden in production
 - **Quote submissions**: Written to Google Sheets via service account (`api/intake/route.ts`)
 
@@ -60,6 +60,19 @@ GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY=
 GOOGLE_SHEETS_ID=
 RESEND_API_KEY=
 ```
+
+### Portfolio gallery
+
+The homepage gallery (`components/site/gallery.tsx`) is a server component that calls `getAllProjects()` and renders a `ProjectCard` per project (`components/site/project-card.tsx`). Cards display:
+
+- **Combination mark** (full visual area) → **logomark** (centered, more padding) → **title text** fallback — in that priority order
+- **Brand color swatches** — dot row below the image area; always rendered at fixed height so all cards stay the same size
+- **Services** — single truncated line below the title (`line-clamp-1`)
+- **Logomark thumbnail** in the footer row only when both `logoMark` and `combinationMark` are set
+
+To add a project: create `content/projects/[slug].mdx` with frontmatter fields defined in `lib/projects.ts` (`Project` interface). Drop logo assets in `public/` and reference them via `logoMark` and `combinationMark` frontmatter fields.
+
+Current projects: JustInception Studio, LOCOAL, Azul Pool Services, The Cupcake Dream Shop, Dan River Window Company, Dunavant Engineering & Construction.
 
 ### Tech stack
 
