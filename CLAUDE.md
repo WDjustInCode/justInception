@@ -81,7 +81,7 @@ The homepage gallery (`components/site/gallery.tsx`) is a server component that 
 
 To add a project: create `content/projects/[slug].mdx` with frontmatter fields defined in `lib/projects.ts` (`Project` interface). Drop logo assets in `public/` and reference them via `logoMark` and `combinationMark` frontmatter fields.
 
-Current projects: JustInception Studio, LOCOAL, Azul Pool Services, The Cupcake Dream Shop, Dan River Window Company, Dunavant Engineering & Construction.
+Current projects: JustInception Studio, LOCOAL, Azul Pool Services, The Cupcake Dream Shop, Dan River Window Company, Dunavant Engineering & Construction, Cafe Reyna.
 
 ### Tech stack
 
