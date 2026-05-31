@@ -12,8 +12,6 @@ Each mistake became a rule. Now every new Cursor session in that repo starts wit
 
 I wrote up what we got wrong, what we changed, and how to configure Cursor so you don't hit the same walls. The rules are on GitHub if you want to copy them.
 
-Links in first comment.
-
 #WordPress #HeadlessCMS #WPGraphQL #Docker #Cursor #ChatGPT #WebDevelopment
 
 
@@ -27,3 +25,12 @@ https://justinception.studio/blog/milestone-1-complete-headless-wordpress-founda
 
 Headless WordPress infra repo:
 https://github.com/WDjustInCode/headless-wordpress.git
+
+
+
+Project description (for LinkedIn):
+
+End-to-end headless web platform that combines a hardened WordPress + WPGraphQL backend with a modern Next.js frontend and an intake wizard for client projects. The stack is fully containerized and deployed to Railway, with ACF-based content modeling, validation scripts for GraphQL and content fields, and a `.cursor/rules` setup so AI tooling understands our conventions and infrastructure. The goal is a reusable, production-ready foundation for future client sites: predictable content APIs, repeatable deployments, and an opinionated developer workflow that bakes in guardrails instead of re-solving the same problems on every project.
+
+
+Milestone 1 of my headless WordPress build is live. It went from “spin up WordPress & move on” to a crash course in Docker, ACF, and WPGraphQL, with every snag turned into reusable Cursor rules for anyone who clones the repo — details: https://justinception.studio/blog/milestone-1-complete-headless-wordpress-foundation
