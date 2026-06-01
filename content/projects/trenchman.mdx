@@ -1,0 +1,39 @@
+---
+title: Trenchman Academy
+description: Full-stack marketing site for a position-specific football training brand spanning camp registration, a merch store, and a recruiting exposure program.
+combinationMark: /trenchman-logomark-gold.svg
+logoMark: /trenchman-logomark-gold.svg
+services:
+  - Brand Identity
+  - Design & Dev
+  - Launch Support
+brandColors:
+  - name: Gold
+    hex: "#AF7618"
+  - name: Deep Black
+    hex: "#080706"
+  - name: Athletic White
+    hex: "#FFFFFF"
+sites:
+  - name: Public Website
+    url: https://trenchmanacademy.com
+    type: public
+    framework: nextjs
+    isPrimary: true
+technologies:
+  - Next.js
+  - TypeScript
+  - Tailwind CSS
+  - Shopify Storefront API
+  - Vercel
+year: 2025
+category: Marketing Site
+---
+
+Trenchman Academy trains offensive and defensive linemen — grades 3 through 12 — at a level the position has never had before. The brand spans three business verticals: a camp registration pipeline, a merch and gear store, and a recruiting exposure program. I built the full site from scratch: design system, production logomark, component architecture, and live Shopify integration.
+
+The site is structured around three routes — `/academy`, `/store`, and `/recruiting` — each with its own conversion goal, plus a home page that splits traffic between them. Products pull in real-time from named Shopify collections (`gear`, `apparel`, `camp-tickets`). Camp dates, locations, age groups, and available spots are stored as Shopify metafields and surfaced dynamically on the schedule — no hardcoded data, no CMS required. Checkout is handled entirely by Shopify via a cart mutation that redirects to a hosted checkout URL.
+
+The design system is built on Tailwind CSS v4's CSS-native config (`@theme {}` blocks) with custom brand tokens for gold, deep black, and athletic white. The client developed the brand direction using AI tools — I took that and produced the production logomark: a clean SVG in two color variants optimized for nav, footer, and favicon contexts. Typography layers Rockwell Extra Bold for hero headlines, Bebas Neue for labels and CTAs, and Calibri for body copy.
+
+Every page is an async Server Component fetching live Shopify data, with `"use client"` scoped only to interactive elements like the add-to-cart button and nav dropdown. `force-dynamic` on Shopify routes ensures inventory, pricing, and camp availability are always current rather than statically cached at build time. The store page fetches `gear` and `apparel` collections concurrently with `Promise.all` to avoid waterfall requests.
