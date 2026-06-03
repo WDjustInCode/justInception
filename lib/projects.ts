@@ -54,6 +54,7 @@ export interface Project {
   client?: string;
   category?: string;
   featured?: boolean;
+  order?: number;
   collateral?: CollateralGroup[];
 }
 
@@ -78,6 +79,11 @@ export function getAllProjects(): Project[] {
         ...(data as Omit<Project, 'slug' | 'content'>),
         content,
       };
+    })
+    .sort((a, b) => {
+      const aOrder = a.order ?? Infinity;
+      const bOrder = b.order ?? Infinity;
+      return aOrder - bOrder;
     });
 }
 
