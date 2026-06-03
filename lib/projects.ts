@@ -22,6 +22,22 @@ export interface BrandColor {
   hex: string;
 }
 
+export type CollateralSpan = 'default' | 'wide' | 'tall';
+
+export interface CollateralItem {
+  src: string;
+  alt: string;
+  label?: string;
+  span?: CollateralSpan;
+  isSvg?: boolean;
+  whiteBg?: boolean;
+}
+
+export interface CollateralGroup {
+  group: string;
+  items: CollateralItem[];
+}
+
 export interface Project {
   slug: string;
   title: string;
@@ -38,6 +54,7 @@ export interface Project {
   client?: string;
   category?: string;
   featured?: boolean;
+  collateral?: CollateralGroup[];
 }
 
 const projectsDirectory = path.join(process.cwd(), 'content', 'projects');

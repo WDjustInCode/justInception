@@ -5,6 +5,7 @@ import { getProjectBySlug, getAllProjectSlugs } from "@/lib/projects";
 import CompactSection from "@/components/projects/compact-section";
 import ProjectHeader from "@/components/projects/project-header";
 import ProjectSites from "@/components/projects/project-sites";
+import ProjectCollateral from "@/components/projects/project-collateral";
 
 interface ProjectPageProps {
   params: Promise<{ slug: string }>;
@@ -173,6 +174,13 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               </div>
             )}
           </div>
+        </CompactSection>
+      )}
+
+      {/* Collateral: Design work artifacts */}
+      {project.collateral && project.collateral.length > 0 && (
+        <CompactSection eyebrow="Design Work" title="Collateral">
+          <ProjectCollateral groups={project.collateral} />
         </CompactSection>
       )}
     </>
